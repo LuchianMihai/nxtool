@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "nxtool"
+version = "0.0.0"
+description = ""
+authors = ["Luchian Mihai <luchiann.mihai@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.scripts]
+nxtool = "nxtool.main:nxcli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+include = ["nxtool"]
+exclude = [
+    "dist",
+]
+ignore = [""]
+defineConstant = {}
+
+reportMissingImports = "error"
+
+executionEnvironments = [
+]
