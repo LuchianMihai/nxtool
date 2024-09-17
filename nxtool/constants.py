@@ -2,6 +2,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Constants:
-    NXTOOL_DIR_NAME: str = ".nxtool"
-    NXTOOL_CONFIG: str = "config.toml"
-    NXTOOL_PROJECTS: str = "projects.toml"
+    """
+    class used to store constants throughout the project
+    """
+    nxtool_dir_name: str = ".nxtool"
+    nxtool_config: str = f"{nxtool_dir_name}/config.toml"
+    nxtool_projects: str = f"{nxtool_dir_name}/projects.toml"

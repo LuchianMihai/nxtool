@@ -18,12 +18,11 @@ build-backend = "poetry.core.masonry.api"
 [tool.pyright]
 include = ["nxtool"]
 exclude = [
-    "dist",
+  "**/node_modules",
+  "**/__pycache__",
 ]
-ignore = [""]
-defineConstant = {}
-
 reportMissingImports = "error"
+reportMissingTypeStubs = false
 
-executionEnvironments = [
-]
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 88

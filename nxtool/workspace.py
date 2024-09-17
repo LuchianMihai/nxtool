@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
-from enum import Enum
+from typing import Any
 import toml
+from nxtool.constants import Constants as cst
 
 
 @dataclass
 class ConfigStore():
-    f"""
+    """
     Config class that stores data from .nxtool/config.
 
     :ivar nuttx: URL for the NuttX repository.
@@ -17,99 +18,100 @@ class ConfigStore():
     nuttx: str = "https://github.com/apache/nuttx"
     apps: str = "https://github.com/apache/nuttx-apps"
 
-    def _pack_data(self) -> dict[str, any]:
+    _config_file: str = f"{cst.nxtool_config}"
+
+    def _pack_data(self) -> dict[str, Any]:
         pack = {}
-        pack["nuttx"] = self.nuttx
-        pack["apps"] = self.apps
+        pack["remotes"] = {}
+        pack["remotes"]["nuttx"] = self.nuttx
+        pack["remotes"]["apps"] = self.apps
         return pack
 
-
-    def load(self, path: str) -> None:
+    def load(self) -> None:
         try:
-            with open(path, 'r') as file:
+            with open(self._config_file, 'r', encoding='utf-8') as file:
                 data: dict = toml.load(file)
+                self.nuttx = data["remotes"]["nuttx"]
+                self.apps = data["remotes"]["apps"]
         except FileNotFoundError:
-            print(f"Error: File '{file_path}' not found.")
+            print(f"Error: File '{self._config_file}' not found.")
             return
         except toml.TomlDecodeError:
-            print(f"Error: File '{file_path}' contains invalid JSON.")
-            return
-        except Exception as e:
-            print(f"An unexpected error occurred while reading the file: {e}")
+            print(f"Error: File '{self._config_file}' contains invalid JSON.")
             return
 
-    def dump(self, path: str) -> None:
+    def dump(self) -> None:
         try:
-            with open(path, 'w') as file:
+            with open(self._config_file, 'w', encoding='utf-8') as file:
                 data = self._pack_data()
                 toml.dump(data, file)
         except FileNotFoundError:
-            print(f"Error: File '{file_path}' not found.")
+            print(f"Error: File '{self._config_file}' not found.")
             return
         except toml.TomlDecodeError:
-            print(f"Error: File '{file_path}' contains invalid JSON.")
+            print(f"Error: File '{self._config_file}' contains invalid JSON.")
             return
-        except Exception as e:
-            print(f"An unexpected error occurred while reading the file: {e}")
-            return
+
 
 @dataclass
 class ProjectInstance():
     name: str
-    config: str = None
-    board: str = None
-        
+    config: str | None = None
+    board: str | None = None
+
 
 @dataclass
 class ProjectStore():
-    current: ProjectInstance = field(default_factory=lambda: ProjectInstance("make"))
+    current: ProjectInstance = field(
+        default_factory=lambda: ProjectInstance("make")
+    )
     projects: list[ProjectInstance] = field(init=False)
+
+    _projects_path = f"{cst.nxtool_projects}"
 
     def __post_init__(self):
         self.projects = [self.current]
 
-    def _pack_data(self) -> dict[str, any]:
+    def _pack_data(self) -> dict[str, Any]:
         pack = {}
         pack["current"] = {}
         pack["current"]["name"] = self.current.name
 
-        pack["projects"] = [{ "name": p.name, "config": p.config, "board": p.config }
-                            for p in self.projects]
+        pack["projects"] = [
+            {"name": p.name, "config": p.config, "board": p.config}
+            for p in self.projects
+        ]
         return pack
 
-    def load(self, path: str) -> None:
+    def load(self) -> None:
         try:
-            with open(path, 'r') as file:
+            with open(self._projects_path, 'r', encoding='utf-8') as file:
                 data: dict = toml.load(file)
                 print(f"{data["current"]["name"]}")
                 self.current = ProjectInstance(data["current"]["name"])
-                self.projects = [ProjectInstance(
-                    p["name"],
-                    p["config"] if "config" in p else None,
-                    p["board"] if "board" in p else None) 
-                    for p in data["projects"]]
+                self.projects = [
+                    ProjectInstance(
+                        p["name"],
+                        p["config"] if "config" in p else None,
+                        p["board"] if "board" in p else None
+                    )
+                    for p in data["projects"]
+                ]
         except FileNotFoundError:
-            print(f"Error: File '{file_path}' not found.")
+            print(f"Error: File '{self._projects_path}' not found.")
             return
         except toml.TomlDecodeError:
-            print(f"Error: File '{file_path}' contains invalid JSON.")
-            return
-        except Exception as e:
-            print(f"An unexpected error occurred while reading the file: {e}")
+            print(f"Error: File '{self._projects_path}' contains invalid JSON.")
             return
 
-    def dump(self, path: str) -> None:
+    def dump(self) -> None:
         try:
-            with open(path, 'w') as file:
+            with open(self._projects_path, 'w', encoding='utf-8') as file:
                 data = self._pack_data()
                 toml.dump(data, file)
         except FileNotFoundError:
-            print(f"Error: File '{file_path}' not found.")
+            print(f"Error: File '{self._projects_path}' not found.")
             return
         except toml.TomlDecodeError:
-            print(f"Error: File '{file_path}' contains invalid JSON.")
+            print(f"Error: File '{self._projects_path}' contains invalid JSON.")
             return
-        except Exception as e:
-            print(f"An unexpected error occurred while reading the file: {e}")
-            return
-

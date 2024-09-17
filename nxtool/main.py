@@ -1,3 +1,7 @@
+"""
+Main module for nxtool
+"""
+
 import typer
 from nxtool.commands import init
 from nxtool.commands import project

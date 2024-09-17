@@ -1,76 +1,91 @@
+"""
+Project commands
+"""
 
 from enum import Enum, unique
+
+from typing_extensions import Annotated
+
 import typer
 from nxtool.commands import NxCmd
-from nxtool.constants import Constants as cst
 from nxtool.workspace import ProjectStore, ProjectInstance
-from typing_extensions import Annotated
+
 
 @unique
 class Action(Enum):
     ADD = 1
 
+
 app = typer.Typer()
 
+
 @app.callback(invoke_without_command=True)
-def cb(ctx: typer.Context
-    ):
+def cb(
+    ctx: typer.Context
+      ):
     if ctx.invoked_subcommand is None:
         prj: ProjectCmd = ProjectCmd(status=True)
         prj.run()
-    
-@app.command(name="add") 
+
+
+@app.command(name="add")
 def add(
-        name: Annotated[str, typer.Argument()]
-    ):
-    prj: ProjectCmd = ProjectCmd(name=name)
-    prj.run(Action.ADD)
+    name: Annotated[list[str], typer.Argument()]
+       ):
+    prj: ProjectCmd = ProjectCmd()
+    prj.run(Action.ADD, name)
+
 
 class ProjectCmd(NxCmd):
     def __init__(self,
                  status: bool = False,
-                 name: str = None):
+                ):
         super().__init__()
-        self.status = status
-        self.name = name
+        self.status: bool = status
 
         self.prj = ProjectStore()
-        self.prj.load(f"{cst.NXTOOL_DIR_NAME}/{cst.NXTOOL_PROJECTS}")
+        self.prj.load()
 
     def _list_projects(self):
-        print(f"========")
+        print("========")
         print(f"working on {self.prj.current.name} project")
 
         if self.prj.current.board is not None:
-            print(f"board is set to '{self.prj.current.board}'")
+            print("board is set to '{self.prj.current.board}'")
         else:
-            print(f"board currently not set")
+            print("board currently not set")
 
         if self.prj.current.config is not None:
             print(f"config is set to '{self.prj.current.config}'")
         else:
-            print(f"config currently not set")
-            print(f"========")
-            print(f"other projects")
+            print("config currently not set")
+            print("========")
+            print("other projects")
 
             for p in self.prj.projects:
                 print(f"name: {p.name}, board: {p.board}, config: {p.config}")
-                print(f"--------")
+                print("--------")
 
-    def _add(self):
-        print(f"adding {self.name}")
-        self.prj.projects.append(ProjectInstance(name=self.name))
-        self.prj.dump(f"{cst.NXTOOL_DIR_NAME}/{cst.NXTOOL_PROJECTS}")
+    def _add(self, args: list[str]):
+        print(f"adding {args}")
+        self.prj.projects.append(
+                ProjectInstance(
+                    name=args[0],
+                    board=args[1],
+                    config=args[2]
+                )
+        )
+        self.prj.dump()
 
+    def _rm(self):
+        pass
 
-    def run(self, action: Enum = None):
+    def run(self, action: Enum | None = None, args: list[str] | None = None):
         if action is not None:
             match action:
                 case Action.ADD:
-                    self._add()
-            pass
+                    if args is not None:
+                        self._add(args)
         else:
             if self.status is True:
                 self._list_projects()
-
-

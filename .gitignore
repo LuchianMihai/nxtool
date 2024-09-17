@@ -2,3 +2,4 @@ dist
 build
 nxtool.egg-info
 .env
+.vscode
