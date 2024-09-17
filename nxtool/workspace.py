@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Any
-import toml
-from nxtool.constants import Constants as cst
+import uuid
 
+import toml
+
+from nxtool.constants import Constants as cst
 
 @dataclass
 class ConfigStore():
@@ -58,6 +60,17 @@ class ProjectInstance():
     name: str
     config: str | None = None
     board: str | None = None
+    _prj_id: uuid.UUID = field(default_factory=uuid.uuid4)
+
+    # Define the __eq__ method to compare objects
+    def __eq__(self, other):
+        if isinstance(other, ProjectInstance):
+            return self._prj_id == other._prj_id
+        return False
+
+    # Define the __hash__ method based on a unique attribute
+    def __hash__(self):
+        return hash(self._prj_id)
 
 
 @dataclass
@@ -65,12 +78,12 @@ class ProjectStore():
     current: ProjectInstance = field(
         default_factory=lambda: ProjectInstance("make")
     )
-    projects: list[ProjectInstance] = field(init=False)
+    projects: set[ProjectInstance] = field(init=False)
 
     _projects_path = f"{cst.nxtool_projects}"
 
     def __post_init__(self):
-        self.projects = [self.current]
+        self.projects = {self.current}
 
     def _pack_data(self) -> dict[str, Any]:
         pack = {}
@@ -78,10 +91,16 @@ class ProjectStore():
         pack["current"]["name"] = self.current.name
 
         pack["projects"] = [
-            {"name": p.name, "config": p.config, "board": p.config}
+            {"name": p.name, "config": p.config, "board": p.board}
             for p in self.projects
         ]
         return pack
+
+    def search(self, name: str) -> ProjectInstance | None:
+        return next(
+            (x for x in self.projects if x.name == name),
+            None
+        )
 
     def load(self) -> None:
         try:
@@ -89,14 +108,14 @@ class ProjectStore():
                 data: dict = toml.load(file)
                 print(f"{data["current"]["name"]}")
                 self.current = ProjectInstance(data["current"]["name"])
-                self.projects = [
+                self.projects = {
                     ProjectInstance(
                         p["name"],
                         p["config"] if "config" in p else None,
                         p["board"] if "board" in p else None
                     )
                     for p in data["projects"]
-                ]
+                }
         except FileNotFoundError:
             print(f"Error: File '{self._projects_path}' not found.")
             return

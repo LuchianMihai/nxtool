@@ -26,7 +26,8 @@ def cb(
             "-c",
             help="clone default repositories")
     ] = False
-      ):
+):
+
     init: Init = Init(clone)
 
     init.run()
