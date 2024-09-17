@@ -3,6 +3,7 @@ Project commands
 """
 
 from enum import Enum, unique
+from typing import Any, Optional
 
 from typing_extensions import Annotated
 
@@ -14,6 +15,7 @@ from nxtool.workspace import ProjectStore, ProjectInstance
 @unique
 class Action(Enum):
     ADD = 1
+    REMOVE = 2
 
 
 app = typer.Typer()
@@ -30,10 +32,36 @@ def cb(
 
 @app.command(name="add")
 def add(
-    name: Annotated[list[str], typer.Argument()]
+    name: Annotated[str, typer.Argument()],
+    board: Annotated[
+        Optional[str],
+        typer.Option(
+            "--board",
+            "-b"
+        )
+    ] = None,
+    config: Annotated[
+        Optional[str],
+        typer.Option(
+            "--config",
+            "-c"
+        )
+    ] = None
        ):
     prj: ProjectCmd = ProjectCmd()
-    prj.run(Action.ADD, name)
+    args: list[Any] = [name, board, config]
+
+    prj.run(Action.ADD, args)
+
+
+@app.command(name="rm")
+def remove(
+    name: Annotated[str, typer.Argument()],
+          ):
+    prj: ProjectCmd = ProjectCmd()
+    args: list[Any] = [name]
+
+    prj.run(Action.REMOVE, args)
 
 
 class ProjectCmd(NxCmd):
@@ -66,26 +94,34 @@ class ProjectCmd(NxCmd):
                 print(f"name: {p.name}, board: {p.board}, config: {p.config}")
                 print("--------")
 
-    def _add(self, args: list[str]):
-        print(f"adding {args}")
-        self.prj.projects.append(
-                ProjectInstance(
-                    name=args[0],
-                    board=args[1],
-                    config=args[2]
-                )
-        )
-        self.prj.dump()
+    def _add(self, name: str, board: str | None, config: str | None):
+        print(f"adding {name} {board} {config}")
+        found: list[ProjectInstance] = [
+            p for p in self.prj.projects if p.name == name
+        ]
+        if not found:
+            self.prj.projects.append(
+                ProjectInstance(name=name, board=board, config=config)
+            )
+            self.prj.dump()
 
-    def _rm(self):
-        pass
+    def _rm(self, name: str):
+        found: list[ProjectInstance] = [
+            p for p in self.prj.projects if p.name == name
+        ]
+        if found:
+            self.prj.projects.remove(found[0])
+            self.prj.dump()
 
-    def run(self, action: Enum | None = None, args: list[str] | None = None):
+    def run(self, action: Enum | None = None, args: list[Any] | None = None):
         if action is not None:
             match action:
                 case Action.ADD:
                     if args is not None:
-                        self._add(args)
+                        self._add(args[0], args[1], args[2])
+                case Action.REMOVE:
+                    if args is not None:
+                        self._rm(args[0])
         else:
             if self.status is True:
                 self._list_projects()
