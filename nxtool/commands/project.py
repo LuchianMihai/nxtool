@@ -4,13 +4,12 @@ Project commands
 
 from enum import Enum, unique
 from typing import Any, Optional
-import re
 from typing_extensions import Annotated
 
 import typer
 from nxtool.commands import NxCmd
-from nxtool.workspace import ProjectStore, ProjectInstance
-from nxtool.utils import split_config_str
+from nxtool.workspace import ProjectStore, ProjectInstance, BoardsStore, Paths
+from nxtool.utils import run_cmake_cmd
 
 
 @unique
@@ -73,38 +72,44 @@ class ProjectCmd(NxCmd):
         self.status: bool = status
         self.init: bool = init
 
-        self.prj = ProjectStore()
+        self.brd: BoardsStore = BoardsStore()
+
+        self.prj: ProjectStore = ProjectStore()
         self.prj.load()
 
     def _list_projects(self):
         print("========")
         print(f"working on {self.prj.current.name} project")
 
-        if self.prj.current.board is not None:
-            print("board is set to '{self.prj.current.board}'")
+        if self.prj.current.config is not None:
+            print(f"board is set to '{self.prj.current.config}'")
         else:
             print("board currently not set")
 
-        if self.prj.current.config is not None:
-            print(f"config is set to '{self.prj.current.config}'")
-        else:
-            print("config currently not set")
-            print("========")
-            print("other projects")
+        print("========")
+        print("other projects")
 
-            for p in self.prj.projects:
-                print(f"name: {p.name}, board: {p.board}, config: {p.config}")
-                print("--------")
+        for p in self.prj.projects:
+            print(f"name: {p.name}, config: {p.config}")
+            print("--------")
 
-    def _add(self, name: str, config: str) -> bool:
+    def _add(self, name: str, config: str | None) -> bool:
         if self.prj.search(name) is not None:
-            config = split_config_str(config)
-            if config is not False:
-                self.prj.projects.add(
-                    ProjectInstance(name=config[0], board=config[1], config=config)
-                )
-                self.prj.dump()
-                return True
+            return False
+
+        if config is None:
+            self.prj.projects.add(ProjectInstance(name=name))
+            self.prj.dump()
+            return True
+
+        cfg: tuple[str, str] | None = self.brd.search(config)
+        if cfg is not None:
+            self.prj.projects.add(
+                ProjectInstance(name=name, config=config)
+            )
+            self.prj.dump()
+            return True
+
         return False
 
     def _rm(self, name: str):
@@ -119,9 +124,8 @@ class ProjectCmd(NxCmd):
                 case Action.ADD:
                     if args is not None:
                         self._add(args[0], args[1])
-                    if self.init is True:
-                        # use make command to initialize the project
-                        pass
+                        if self.init is True:
+                            pass
                 case Action.REMOVE:
                     if args is not None:
                         self._rm(args[0])

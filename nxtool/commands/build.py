@@ -1,10 +1,11 @@
 from enum import Enum, unique
-import subprocess
-import sys
+from pathlib import Path
+from shutil import rmtree
 from typing import Any, Optional, Annotated
 import typer
 from nxtool.commands import NxCmd
-from nxtool.workspace import ProjectInstance, ProjectStore
+from nxtool.workspace import ProjectStore, BoardsStore, Paths
+from nxtool.utils import run_cmake_cmd
 
 @unique
 class Action(Enum):
@@ -27,59 +28,57 @@ def cb(
         "-c",
         "--config",
         help="new config for project"
-    )] = None,
-    args: Annotated[
-        Optional[str],
-        typer.Option(
-            "--",
-            help="arguments passed directly to cmake"
-        )
-    ] = None
+    )] = None
 ):
-
-    print(f"{name} {args}")
-
     bld: BuildCmd = BuildCmd(
         name=name,
         config=config,
-        args=args
     )
     bld.run()
 
 class BuildCmd(NxCmd):
     def __init__(self,
                  name: str | None = None,
-                 config: str | None = None,
-                 args: str | None = None
+                 config: str | None = None
                 ):
         super().__init__()
         self.prj: ProjectStore = ProjectStore()
-        if name is not None:
-            # If you intended to write the if statement across multiple lines,
-            # you can wrap the expression in parentheses
-            self.project_name = (
-                name if self.prj.search(name) is not None
-                else self.prj.current.name
-            )
+        self.brd: BoardsStore = BoardsStore()
 
-        if config is not None:
+        self.name: str = self.prj.current.name
+        self.config: str | None = self.prj.current.config
+        self.rebuild: bool = self.config is None
+
+        if name is not None and self.prj.search(name) is not None:
+            self.name = name
+
+        if config is not None and self.brd.search(config) is not None:
             self.config = config
+            self.rebuild = self.config == config
 
-        self.cmake_agrs = args
+        self.build_path = Paths.nxtool_root / Path(f"build_{self.name}")
+
+        if self.config is None:
+            # log error, no config present
+            pass
 
     def _check_project(self) -> bool:
         return False
 
-    def _run_cmake_cmd(self, args: list[str]) -> None:
-        cmd = ['git'] + args
-        with subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, text=True
-        ) as proc:
-            if proc.stdout:
-                for line in iter(proc.stdout.readline, ''):
-                    sys.stdout.write(line)
-                proc.communicate()
+    def init(self) -> None:
+        if self.build_path.exists() and self.build_path.is_dir():
+            rmtree(self.build_path)
+        self.build_path.mkdir(parents=True, exist_ok=True)
+        run_cmake_cmd([
+            f"-S{Paths.nxtool_root / "nuttx"}",
+            f"-B{self.build_path}",
+            f"-DBOARD_CONFIG={self.config}"
+        ])
 
     def run(self, action: Enum | None = None, args: list[Any] | None = None):
-        self._run_cmake_cmd(["./nuttx"])
-
+        if self.rebuild is True:
+            self.init()
+        run_cmake_cmd([
+            "--build",
+            f"{self.build_path}"
+        ])
