@@ -7,9 +7,9 @@ from typing_extensions import Annotated
 
 import typer
 
-from nxtool.utils import run_git_cmd
+from nxtool.utils.run_cmd import run_git_cmd
 
-from nxtool.commands import NxCmd
+from nxtool.commands.nxcmd import NxCmd
 from nxtool.workspace import Paths
 from nxtool.workspace import ConfigStore, ProjectStore
 

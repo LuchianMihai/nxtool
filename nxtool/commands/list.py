@@ -3,7 +3,7 @@ from typing import Any
 import typer
 
 
-from nxtool.commands import NxCmd
+from nxtool.commands.nxcmd import NxCmd
 from nxtool.workspace import BoardsStore
 
 @unique

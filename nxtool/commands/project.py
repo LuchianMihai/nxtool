@@ -7,9 +7,9 @@ from typing import Any, Optional
 from typing_extensions import Annotated
 
 import typer
-from nxtool.commands import NxCmd
-from nxtool.workspace import ProjectStore, ProjectInstance, BoardsStore, Paths
-from nxtool.utils import run_cmake_cmd
+from nxtool.commands.nxcmd import NxCmd
+from nxtool.commands.build import BuildCmd
+from nxtool.workspace import ProjectStore, ProjectInstance, BoardsStore
 
 
 @unique
@@ -112,23 +112,30 @@ class ProjectCmd(NxCmd):
 
         return False
 
-    def _rm(self, name: str):
+    def _rm(self, name: str) -> bool:
         found: ProjectInstance | None = self.prj.search(name)
         if found is not None:
             self.prj.projects.remove(found)
             self.prj.dump()
+            return True
+        return False
 
     def run(self, action: Enum | None = None, args: list[Any] | None = None):
         if action is not None:
             match action:
                 case Action.ADD:
                     if args is not None:
-                        self._add(args[0], args[1])
-                        if self.init is True:
-                            pass
+                        res: bool = self._add(args[0], args[1])
+                        if self.init is True and res is True:
+                            build: BuildCmd = BuildCmd(args[0], args[1])
+                            build.init()
+
                 case Action.REMOVE:
                     if args is not None:
-                        self._rm(args[0])
+                        res: bool = self._rm(args[0])
+                        build: BuildCmd = BuildCmd(args[0], args[1])
+                        build.clean()
+
         else:
             if self.status is True:
                 self._list_projects()

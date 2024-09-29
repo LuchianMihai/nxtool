@@ -3,15 +3,15 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any, Optional, Annotated
 import typer
-from nxtool.commands import NxCmd
+from nxtool.commands.nxcmd import NxCmd
 from nxtool.workspace import ProjectStore, BoardsStore, Paths
-from nxtool.utils import run_cmake_cmd
-
-@unique
-class Action(Enum):
-    ADD = 1
+from nxtool.utils.run_cmd import run_cmake_cmd
 
 app = typer.Typer()
+
+@unique
+class Actions(Enum):
+    CLEAN = 1
 
 @app.callback(invoke_without_command=True)
 def cb(
@@ -53,8 +53,8 @@ class BuildCmd(NxCmd):
             self.name = name
 
         if config is not None and self.brd.search(config) is not None:
-            self.config = config
             self.rebuild = self.config == config
+            self.config = config
 
         self.build_path = Paths.nxtool_root / Path(f"build_{self.name}")
 
@@ -62,20 +62,34 @@ class BuildCmd(NxCmd):
             # log error, no config present
             pass
 
-    def _check_project(self) -> bool:
-        return False
+        # Handle makefiles separately
+        self.make = self.name == 'make'
 
     def init(self) -> None:
-        if self.build_path.exists() and self.build_path.is_dir():
-            rmtree(self.build_path)
+        """
+        Initializes the given project build folder if not present or
+        if given config differs from stored config
+        """
+        self.clean()
         self.build_path.mkdir(parents=True, exist_ok=True)
+
+        #TODO: rewrite this as an cmake wrapper class
         run_cmake_cmd([
             f"-S{Paths.nxtool_root / "nuttx"}",
             f"-B{self.build_path}",
             f"-DBOARD_CONFIG={self.config}"
         ])
 
-    def run(self, action: Enum | None = None, args: list[Any] | None = None):
+    def clean(self) -> None:
+        """
+        Remove the build folder of the given project
+        """
+        if self.build_path.exists() and self.build_path.is_dir():
+            rmtree(self.build_path)
+
+    def run(self, action: Enum | None = None, args: list[Any] | None = None) -> None:
+
+
         if self.rebuild is True:
             self.init()
         run_cmake_cmd([
