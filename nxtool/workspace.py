@@ -1,26 +1,11 @@
 from dataclasses import dataclass, field
 import glob
-from pathlib import Path
 import re
-import sys
 from typing import Any
 
 import toml
 
-def _topdir(target_dir: Path) -> Path:
-    current_dir: Path = Path.cwd()
-    ret: Path | None = next(
-        (
-            p for p in [current_dir] + list(current_dir.parents)
-            if (p / f"{target_dir}").is_dir()
-        ),
-        None
-    )
-    if ret is not None:
-        return ret
 
-    print(f"workspace topdir not found")
-    sys.exit()
 
 
 @dataclass(frozen=True)
