@@ -9,13 +9,10 @@ import typer
 
 from nxtool.utils.run_cmd import run_git_cmd
 
-from nxtool.commands.nxcmd import NxCmd
-from nxtool.workspace import Paths
-from nxtool.workspace import ConfigStore, ProjectStore
-
+from nxtool.workspace import ProjectStore
+from nxtool.configuration import ConfigStore, PathsStore
 
 app = typer.Typer()
-
 
 @app.callback(invoke_without_command=True)
 def cb(
@@ -29,11 +26,10 @@ def cb(
 ):
 
     init: InitCmd = InitCmd(clone)
-
     init.run()
 
 
-class InitCmd(NxCmd):
+class InitCmd():
     def __init__(
         self,
         clone: bool = False
@@ -51,14 +47,18 @@ class InitCmd(NxCmd):
 
         return ret
 
-    def run(self, action: Enum | None = None, args: list[Any] | None = None):
+    def run(self):
+        """
+        Run the workspace initialization.
+        If -c flag is set, default repositories are also cloned
+        """
         if self._check_git() is False:
             print("git executable not found in path. Aborting")
             return
 
         try:
-            os.mkdir(Paths.nxtool_dir_name)
-            print(f"{Paths.nxtool_dir_name} directory created")
+            os.mkdir(PathsStore.nxtool_dir_name)
+            print(f"{PathsStore.nxtool_dir_name} directory created")
 
             self.cfg.dump()
             self.prj.dump()

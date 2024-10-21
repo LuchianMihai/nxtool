@@ -1,17 +1,12 @@
-from enum import Enum, unique
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Optional, Annotated
 import typer
-from nxtool.commands.nxcmd import NxCmd
-from nxtool.workspace import ProjectStore, BoardsStore, Paths
+from nxtool.workspace import ProjectStore, BoardsStore
+from nxtool.configuration import PathsStore
 from nxtool.utils.run_cmd import run_cmake_cmd
 
 app = typer.Typer()
-
-@unique
-class Actions(Enum):
-    CLEAN = 1
 
 @app.callback(invoke_without_command=True)
 def cb(
@@ -30,20 +25,22 @@ def cb(
         help="new config for project"
     )] = None
 ):
-    bld: BuildCmd = BuildCmd(
-        name=name,
-        config=config,
-    )
-    bld.run()
+    bld: BuildCmd = BuildCmd()
+    args: list[Any] = [name, config]
 
-class BuildCmd(NxCmd):
+class BuildCmd():
     def __init__(self,
                  name: str | None = None,
                  config: str | None = None
                 ):
-        super().__init__()
+        
         self.prj: ProjectStore = ProjectStore()
         self.brd: BoardsStore = BoardsStore()
+
+        if name is not None and self.prj.search(name) is not None:
+            self.name: str = name
+        else:
+            self.name: str = self.prj.current.name
 
         self.name: str = self.prj.current.name
         self.config: str | None = self.prj.current.config
@@ -56,7 +53,7 @@ class BuildCmd(NxCmd):
             self.rebuild = self.config == config
             self.config = config
 
-        self.build_path = Paths.nxtool_root / Path(f"build_{self.name}")
+        self.build_path = PathsStore.nxtool_root / Path(f"build_{self.name}")
 
         if self.config is None:
             # log error, no config present
@@ -75,7 +72,7 @@ class BuildCmd(NxCmd):
 
         #TODO: rewrite this as an cmake wrapper class
         run_cmake_cmd([
-            f"-S{Paths.nxtool_root / "nuttx"}",
+            f"-S{PathsStore.nxtool_root / "nuttx"}",
             f"-B{self.build_path}",
             f"-DBOARD_CONFIG={self.config}"
         ])
@@ -86,13 +83,3 @@ class BuildCmd(NxCmd):
         """
         if self.build_path.exists() and self.build_path.is_dir():
             rmtree(self.build_path)
-
-    def run(self, action: Enum | None = None, args: list[Any] | None = None) -> None:
-
-
-        if self.rebuild is True:
-            self.init()
-        run_cmake_cmd([
-            "--build",
-            f"{self.build_path}"
-        ])
