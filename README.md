@@ -1,6 +1,6 @@
-## TODOs
-* nxtool list boards
-* nxtool list boards -c -> for boards:configs
-* nxtool list tools
-* nxtool list projects
-* nxtool build -t -> build tool like nxstyle
+# Work In Progress ?
+
+## Goals
+nxtool aim to ease the build/config phase of NuttX
+
+## How to use
