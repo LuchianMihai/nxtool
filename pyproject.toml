@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.12"
 
 [tool.poetry.scripts]
-nxtool = "nxtool.main:nxcli"
+nxtool = "nxtool.__main__:nxapp.start()"
 
 [build-system]
 requires = ["poetry-core"]
