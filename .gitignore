@@ -3,3 +3,4 @@ build
 nxtool.egg-info
 .env
 .vscode
+__pycache__
