@@ -1,3 +1,3 @@
-from nxtool.main import nxcli
+from nxtool.main import NxApp
 
-nxcli()
+nxapp: NxApp = NxApp()

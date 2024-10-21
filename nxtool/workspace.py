@@ -1,71 +1,10 @@
 from dataclasses import dataclass, field
 import glob
 import re
+from pathlib import Path
 from typing import Any
-
 import toml
-
-
-
-
-@dataclass(frozen=True)
-class Paths:
-    """
-    class used to store paths throughout the project
-    """
-    nxtool_dir_name: Path = Path(".nxtool")
-    nxtool_root: Path = _topdir(nxtool_dir_name)
-    nxtool_config: Path = nxtool_root / nxtool_dir_name / "config.toml"
-    nxtool_projects: Path = nxtool_root / nxtool_dir_name / "projects.toml"
-
-@dataclass
-class ConfigStore():
-    """
-    Config class that stores data from .nxtool/config.
-
-    :ivar nuttx: URL for the NuttX repository.
-    :vartype nuttx: str
-    :ivar apps: URL for the NuttX apps repository.
-    :vartype apps: str
-    """
-
-    nuttx: str = "https://github.com/apache/nuttx"
-    apps: str = "https://github.com/apache/nuttx-apps"
-
-    _config_file: str = f"{Paths.nxtool_config}"
-
-    def _pack_data(self) -> dict[str, Any]:
-        pack = {}
-        pack["remotes"] = {}
-        pack["remotes"]["nuttx"] = self.nuttx
-        pack["remotes"]["apps"] = self.apps
-        return pack
-
-    def load(self) -> None:
-        try:
-            with open(self._config_file, 'r', encoding='utf-8') as file:
-                data: dict = toml.load(file)
-                self.nuttx = data["remotes"]["nuttx"]
-                self.apps = data["remotes"]["apps"]
-        except FileNotFoundError:
-            print(f"Error: File '{self._config_file}' not found.")
-            return
-        except toml.TomlDecodeError:
-            print(f"Error: File '{self._config_file}' contains invalid JSON.")
-            return
-
-    def dump(self) -> None:
-        try:
-            with open(self._config_file, 'w', encoding='utf-8') as file:
-                data = self._pack_data()
-                toml.dump(data, file)
-        except FileNotFoundError:
-            print(f"Error: File '{self._config_file}' not found.")
-            return
-        except toml.TomlDecodeError:
-            print(f"Error: File '{self._config_file}' contains invalid JSON.")
-            return
-
+from nxtool.configuration import PathsStore
 
 @dataclass
 class ProjectInstance():
@@ -83,17 +22,18 @@ class ProjectInstance():
     def __hash__(self):
         return hash(self.name)
 
-
 @dataclass
 class ProjectStore():
-    current: ProjectInstance = field(
-        default_factory=lambda: ProjectInstance("make")
-    )
+
+    # This should be instance attributes
+    current: ProjectInstance = field(init=False)
     projects: set[ProjectInstance] = field(init=False)
 
-    _projects_path = f"{Paths.nxtool_projects}"
+    # This shoul be class attribute
+    make: ProjectInstance = ProjectInstance("make")
 
     def __post_init__(self):
+        self.current = self.make
         self.projects = {self.current}
 
     def _pack_data(self) -> dict[str, Any]:
@@ -115,7 +55,7 @@ class ProjectStore():
 
     def load(self) -> None:
         try:
-            with open(self._projects_path, 'r', encoding='utf-8') as file:
+            with open(PathsStore.nxtool_projects, 'r', encoding='utf-8') as file:
                 data: dict = toml.load(file)
                 self.current = ProjectInstance(data["current"]["name"])
                 self.projects = {
@@ -126,32 +66,32 @@ class ProjectStore():
                     for p in data["projects"]
                 }
         except FileNotFoundError:
-            print(f"Error: File '{self._projects_path}' not found.")
+            print(f"Error: File '{PathsStore.nxtool_projects}' not found.")
             return
         except toml.TomlDecodeError:
-            print(f"Error: File '{self._projects_path}' contains invalid JSON.")
+            print(f"Error: File '{PathsStore.nxtool_projects}' contains invalid JSON.")
             return
 
     def dump(self) -> None:
         try:
-            with open(self._projects_path, 'w', encoding='utf-8') as file:
+            with open(PathsStore.nxtool_projects, 'w', encoding='utf-8') as file:
                 data = self._pack_data()
                 toml.dump(data, file)
         except FileNotFoundError:
-            print(f"Error: File '{self._projects_path}' not found.")
+            print(f"Error: File '{PathsStore.nxtool_projects}' not found.")
             return
         except toml.TomlDecodeError:
-            print(f"Error: File '{self._projects_path}' contains invalid JSON.")
+            print(f"Error: File '{PathsStore.nxtool_projects}' contains invalid JSON.")
             return
 
 @dataclass
 class BoardsStore():
-    boards_list: list[str] = field(
-        default_factory=lambda: glob.glob("./nuttx/**/defconfig", recursive=True)
-    )
+    boards_list: list[str] = field(init=False)
     boards_dict: dict[str, list[str]] = field(default_factory=dict, init=False)
 
     def __post_init__(self):
+        self.boards_list = glob.glob("./nuttx/**/defconfig", recursive=True)
+
         for board in self.boards_list:
             b = Path(board).as_posix()
             m = re.search(r'/([a-zA-Z0-9_]*)/configs/(.*)/defconfig$', b)
