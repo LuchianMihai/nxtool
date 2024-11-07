@@ -2,14 +2,20 @@ from dataclasses import dataclass, field
 import glob
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 import toml
 from nxtool.configuration import PathsStore
 
+class ProjectOpts(TypedDict, total=False):
+    generator: str
+    compiler: str
+
 @dataclass
 class ProjectInstance():
-    name: str
-    config: str | None = None
+    name: str = field()
+    config: str = field()
+    opts: ProjectOpts = field(default={})
+
     # _prj_id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     # Define the __eq__ method to compare objects
@@ -29,12 +35,12 @@ class ProjectStore():
     current: ProjectInstance = field(init=False)
     projects: set[ProjectInstance] = field(init=False)
 
-    # This shoul be class attribute
-    make: ProjectInstance = ProjectInstance("make")
+    # This should be class attribute
+    make: ProjectInstance = ProjectInstance("make", "sim:nsh")
 
     def __post_init__(self):
+        self.projects = {self.make}
         self.current = self.make
-        self.projects = {self.current}
 
     def _pack_data(self) -> dict[str, Any]:
         pack = {}
@@ -57,14 +63,17 @@ class ProjectStore():
         try:
             with open(PathsStore.nxtool_projects, 'r', encoding='utf-8') as file:
                 data: dict = toml.load(file)
-                self.current = ProjectInstance(data["current"]["name"])
                 self.projects = {
-                    ProjectInstance(
-                        p["name"],
-                        p["config"] if "config" in p else None
-                    )
+                    ProjectInstance(p["name"], p["config"])
                     for p in data["projects"]
                 }
+                current: ProjectInstance | None = self.search(data["current"]["name"])
+                if current is None:
+                    # Log this -> Should fall back to a known project
+                    self.current = self.make
+                else:
+                    self.current = current
+
         except FileNotFoundError:
             print(f"Error: File '{PathsStore.nxtool_projects}' not found.")
             return
