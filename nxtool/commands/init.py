@@ -1,8 +1,6 @@
 import shutil
 import os
-from typing import Any
 
-from enum import Enum
 from typing_extensions import Annotated
 
 import typer
@@ -24,10 +22,8 @@ def cb(
             help="clone default repositories")
     ] = False
 ):
-
     init: InitCmd = InitCmd(clone)
     init.run()
-
 
 class InitCmd():
     def __init__(
