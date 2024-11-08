@@ -28,6 +28,8 @@ class PathsStore():
     nxtool_root: ClassVar[Path] = Path()
     nxtool_config: ClassVar[Path] = Path()
     nxtool_projects: ClassVar[Path] = Path()
+    nxtool_build_dir: ClassVar[Path] = Path()
+    nxtool_bin_dir: ClassVar[Path] = Path()
 
 @dataclass
 class ConfigStore():
