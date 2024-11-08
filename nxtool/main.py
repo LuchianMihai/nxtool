@@ -9,6 +9,7 @@ from nxtool.commands import *
 
 from nxtool.configuration import PathsStore, ConfigStore
 from nxtool.utils.topdir import topdir
+from nxtool.workspace import ToolsStore
 
 
 class NxApp():
@@ -32,12 +33,20 @@ class NxApp():
         PathsStore.nxtool_projects = (
             PathsStore.nxtool_root / PathsStore.nxtool_dir_name / "projects.toml"
         )
+        PathsStore.nxtool_build_dir = (
+            PathsStore.nxtool_root / PathsStore.nxtool_dir_name / "build"
+        )
+        PathsStore.nxtool_bin_dir = (
+            PathsStore.nxtool_root / PathsStore.nxtool_dir_name / "bin"
+        )
 
         self._configure_cli()
 
     def _configure_cli(self):
         self.nxcli.add_typer(init_cmd, name="init")
         self.nxcli.add_typer(project_cmd, name="prj")
+        self.nxcli.add_typer(list_cmd, name="ls")
+        self.nxcli.add_typer(build_cmd, name="build")
 
     def start(self):
         self.nxcli()
