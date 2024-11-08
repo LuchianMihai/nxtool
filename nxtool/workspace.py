@@ -14,7 +14,7 @@ class ProjectOpts(TypedDict, total=False):
 class ProjectInstance():
     name: str = field()
     config: str = field()
-    opts: ProjectOpts = field(default={})
+    opts: ProjectOpts = field(default_factory = lambda: ({}))
 
     # _prj_id: uuid.UUID = field(default_factory=uuid.uuid4)
 
@@ -41,6 +41,7 @@ class ProjectStore():
     def __post_init__(self):
         self.projects = {self.make}
         self.current = self.make
+        self.load()
 
     def _pack_data(self) -> dict[str, Any]:
         pack = {}
@@ -127,3 +128,14 @@ class BoardsStore():
         if cfg is not None:
             return cfg if cfg[1] in self.boards_dict[cfg[0]] else None
         return None
+
+@dataclass
+class ToolsStore():
+    tools_list: list[str] = field(init=False)
+
+    def __post_init__(self):
+        cmakelists = open('./nuttx/tools/CMakeLists.txt', 'r', encoding='utf-8').read()
+        self.tools_list = re.findall(r'add_executable\((.*?)\s.*\)', cmakelists)
+
+    def search(self, config: str) -> bool:
+        return any(config in item for item in self.tools_list)
