@@ -3,12 +3,12 @@ Project commands module.
 
 This module provides command-line commands for managing projects within a workspace,
 including adding, removing, and setting active projects. The commands are implemented
-using Typer for an intuitive CLI interface, and they interact with the `ProjectStore` 
+using Typer for an intuitive CLI interface, and they interact with the `ProjectStore`
 and `BoardsStore` classes to handle project data and configurations.
 
 Classes:
-    ProjectCmd: 
-        A command handler for managing projects, allowing for adding, 
+    ProjectCmd:
+        A command handler for managing projects, allowing for adding,
         removing, and setting active projects, as well as managing configurations.
 
 Functions:
@@ -26,7 +26,7 @@ Usage Example:
 """
 
 from typing import Tuple
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Optional
 
 import typer
 from nxtool.workspace import ProjectStore, ProjectInstance, BoardsStore
@@ -35,21 +35,21 @@ app = typer.Typer()
 
 @app.callback(invoke_without_command=True)
 def cb(
+    ctx: typer.Context,
     name: Annotated[
-        str,
-        typer.Argument()
-    ]
-      ):
-    """
-    Callback function for handling commands when invoked without a subcommand.
-
-    Sets the active project based on the provided name.
-
-    :param name: Name of the project to set as active.
-    :type name: str
-    """
-    prj: ProjectCmd = ProjectCmd()
-    prj.setprj(name)
+        Optional[str],
+        typer.Option(
+            "--project",
+            "-p"
+        )
+    ] = None
+):
+    if ctx.invoked_subcommand is None:
+        cmd: ProjectCmd = ProjectCmd()
+        if name is not None:
+            cmd.setprj(name)
+        else:
+            print(cmd.prj.current)
 
 @app.command(name="add")
 def add(
@@ -70,21 +70,31 @@ def add(
     :param config: The configuration identifier for the project.
     :type config: str
     """
-    prj: ProjectCmd = ProjectCmd()
-    prj.add(project, config)
+    cmd: ProjectCmd = ProjectCmd()
+    cmd.add(project, config)
 
 @app.command(name="rm")
 def remove(
     project: Annotated[str, typer.Argument()],
-          ):
+):
     """
     Remove an existing project by name.
 
     :param project: The name of the project to remove.
     :type project: str
     """
-    prj: ProjectCmd = ProjectCmd()
-    prj.rm(project)
+    cmd: ProjectCmd = ProjectCmd()
+    cmd.rm(project)
+
+@app.command(name="set")
+def setopt(
+    opt: Annotated[
+        Tuple[str, str],
+        typer.Argument()
+    ],
+):
+    cmd: ProjectCmd = ProjectCmd()
+    cmd.setopts(opt)
 
 class ProjectCmd():
     '''
