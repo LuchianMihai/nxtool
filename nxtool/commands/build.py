@@ -1,16 +1,16 @@
 from pathlib import Path
-from shutil import rmtree
-from typing import Any, Optional, Annotated
+from typing import Optional, Annotated
 import typer
-from nxtool.workspace import ProjectStore, BoardsStore
+from nxtool.workspace import ProjectStore, BoardsStore, ProjectInstance
 from nxtool.configuration import PathsStore
-from nxtool.utils.run_cmd import run_cmake_cmd
+from nxtool.utils.builders import CMakeBuilder, MakeBuilder, Builder
 
 app = typer.Typer()
 
 @app.callback(invoke_without_command=True)
 def cb(
-    name: Annotated[
+    ctx: typer.Context,
+    project: Annotated[
         Optional[str],
         typer.Option(
             "--project",
@@ -25,61 +25,35 @@ def cb(
         help="new config for project"
     )] = None
 ):
-    bld: BuildCmd = BuildCmd()
-    args: list[Any] = [name, config]
+    if ctx.invoked_subcommand is None:
+        bld: BuildCmd = BuildCmd(project, config)
+        bld.build()
 
 class BuildCmd():
     def __init__(self,
-                 name: str | None = None,
+                 project: str | None = None,
                  config: str | None = None
                 ):
-        
+
         self.prj: ProjectStore = ProjectStore()
         self.brd: BoardsStore = BoardsStore()
 
-        if name is not None and self.prj.search(name) is not None:
-            self.name: str = name
+        # if project option is None, force search function to also return None
+        self.inst: ProjectInstance = self.prj.search(project or "") or self.prj.current
+
+        self.rebuild: bool = self.inst.config != config
+        if config is not None:
+            self.inst.config = config
+
+        dest_path = PathsStore.nxtool_root / Path(f"build_{self.inst.name}")
+        src_path = PathsStore.nxtool_root / Path("nuttx")
+
+        if self.inst.name != "make":
+            self.builder: Builder = CMakeBuilder(src_path, dest_path)
         else:
-            self.name: str = self.prj.current.name
+            self.builder: Builder = MakeBuilder(src_path, dest_path)
 
-        self.name: str = self.prj.current.name
-        self.config: str | None = self.prj.current.config
-        self.rebuild: bool = self.config is None
-
-        if name is not None and self.prj.search(name) is not None:
-            self.name = name
-
-        if config is not None and self.brd.search(config) is not None:
-            self.rebuild = self.config == config
-            self.config = config
-
-        self.build_path = PathsStore.nxtool_root / Path(f"build_{self.name}")
-
-        if self.config is None:
-            # log error, no config present
-            pass
-
-        # Handle makefiles separately
-        self.make = self.name == 'make'
-
-    def init(self) -> None:
-        """
-        Initializes the given project build folder if not present or
-        if given config differs from stored config
-        """
-        self.clean()
-        self.build_path.mkdir(parents=True, exist_ok=True)
-
-        #TODO: rewrite this as an cmake wrapper class
-        run_cmake_cmd([
-            f"-S{PathsStore.nxtool_root / "nuttx"}",
-            f"-B{self.build_path}",
-            f"-DBOARD_CONFIG={self.config}"
-        ])
-
-    def clean(self) -> None:
-        """
-        Remove the build folder of the given project
-        """
-        if self.build_path.exists() and self.build_path.is_dir():
-            rmtree(self.build_path)
+    def build(self) -> None:
+        if self.rebuild is True:
+            self.builder.configure(self.inst.config)
+        self.builder.build()
