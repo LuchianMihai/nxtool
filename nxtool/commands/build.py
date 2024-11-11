@@ -19,41 +19,41 @@ def cb(
     ] = None,
     config: Annotated[
         Optional[str],
-    typer.Option(
-        "-c",
-        "--config",
-        help="new config for project"
-    )] = None
+        typer.Argument()
+    ] = None
 ):
     if ctx.invoked_subcommand is None:
-        bld: BuildCmd = BuildCmd(project, config)
-        bld.build()
+        bld: BuildCmd = BuildCmd(project)
+        bld.build(config)
 
 class BuildCmd():
     def __init__(self,
                  project: str | None = None,
-                 config: str | None = None
-                ):
-
+    ):
         self.prj: ProjectStore = ProjectStore()
         self.brd: BoardsStore = BoardsStore()
 
         # if project option is None, force search function to also return None
         self.inst: ProjectInstance = self.prj.search(project or "") or self.prj.current
 
-        self.rebuild: bool = self.inst.config != config
-        if config is not None:
-            self.inst.config = config
-
         dest_path = PathsStore.nxtool_root / Path(f"build_{self.inst.name}")
         src_path = PathsStore.nxtool_root / Path("nuttx")
 
-        if self.inst.name != "make":
+        if self.inst != self.prj.make:
             self.builder: Builder = CMakeBuilder(src_path, dest_path)
         else:
             self.builder: Builder = MakeBuilder(src_path, dest_path)
 
-    def build(self) -> None:
-        if self.rebuild is True:
-            self.builder.configure(self.inst.config)
+    def __del__(self):
+        self.prj.current = self.inst
+        self.prj.dump()
+
+    def build(
+        self,
+        config: str | None = None
+    ) -> None:
+
+        if config is not None and self.brd.search(config) is not None:
+            self.inst.config = config
+        self.builder.configure(self.inst.config)
         self.builder.build()
