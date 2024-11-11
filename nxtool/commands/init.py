@@ -5,7 +5,7 @@ from typing_extensions import Annotated
 
 import typer
 
-from nxtool.utils.run_cmd import run_git_cmd
+from nxtool.utils.git import GitWrapper
 
 from nxtool.workspace import ProjectStore
 from nxtool.configuration import ConfigStore, PathsStore
@@ -64,7 +64,9 @@ class InitCmd():
 
         if self.clone is True:
             # git clone https://github.com/apache/nuttx nuttx
-            run_git_cmd(['clone', f'{self.cfg.nuttx}', 'nuttx'])
+            nuttx_repo:GitWrapper = GitWrapper(f'{self.cfg.nuttx}')
+            nuttx_repo.clone()
 
             # git clone https://github.com/apache/nuttx-apps apps
-            run_git_cmd(['clone', f'{self.cfg.apps}', 'apps'])
+            apps_repo:GitWrapper = GitWrapper(f'{self.cfg.apps}')
+            apps_repo.clone()

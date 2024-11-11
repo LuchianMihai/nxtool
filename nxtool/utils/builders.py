@@ -2,11 +2,12 @@
 Wrappers over build tools. For the moment only cmake and make are supported
 """
 
+import sys
+import subprocess
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 from shutil import rmtree
-
-from nxtool.utils.run_cmd import run_cmake_cmd
 
 class Builder(ABC):
     def __init__(
@@ -54,6 +55,16 @@ class MakeBuilder(Builder):
             destination=destination
         )
 
+    def _run_make_cmd(self, args: list[str]) -> None:
+        cmd = ['make'] + args
+        with subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, text=True
+        ) as proc:
+            if proc.stdout:
+                for line in iter(proc.stdout.readline, ''):
+                    sys.stdout.write(line)
+                proc.communicate()
+
     def configure(self, config: str):
         """
         equivalent to ./tools/configure.sh
@@ -79,12 +90,22 @@ class CMakeBuilder(Builder):
             destination=destination
         )
 
+    def _run_cmake_cmd(self, args: list[str]) -> None:
+        cmd = ['cmake'] + args
+        with subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, text=True
+        ) as proc:
+            if proc.stdout:
+                for line in iter(proc.stdout.readline, ''):
+                    sys.stdout.write(line)
+                proc.communicate()
+
     def configure(self, config: str, btype: str = "Debug", generator: str = "Ninja"):
         """
         Configure cmake project
         """
 
-        run_cmake_cmd([
+        self._run_cmake_cmd([
             f"-S {self.source}",
             f"-B {self.destination}",
             f"-G {generator}",
@@ -95,7 +116,7 @@ class CMakeBuilder(Builder):
 
     def build(self, target: str = "all"):
 
-        run_cmake_cmd([
+        self._run_cmake_cmd([
             "--build",
             f"{self.destination}"
         ])
