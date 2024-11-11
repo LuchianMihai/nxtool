@@ -36,20 +36,28 @@ app = typer.Typer()
 @app.callback(invoke_without_command=True)
 def cb(
     ctx: typer.Context,
-    name: Annotated[
+    change: Annotated[
         Optional[str],
         typer.Option(
-            "--project",
-            "-p"
+            "--change",
+            "-c"
         )
-    ] = None
+    ] = None,
+    show: Annotated[
+        bool,
+        typer.Option(
+            "--show",
+            "-s"
+        )
+    ] = False
 ):
     if ctx.invoked_subcommand is None:
         cmd: ProjectCmd = ProjectCmd()
-        if name is not None:
-            cmd.setprj(name)
-        else:
+        if show is True:
             print(cmd.prj.current)
+        else:
+            if change is not None:
+                cmd.setprj(change)
 
 @app.command(name="add")
 def add(
@@ -60,7 +68,14 @@ def add(
     config: Annotated[
         str,
         typer.Argument()
-    ]
+    ],
+    change: Annotated[
+        bool,
+        typer.Option(
+            "--change",
+            "-c"
+        )
+    ] = False,
 ):
     """
     Add a new project with a specified configuration.
@@ -72,6 +87,9 @@ def add(
     """
     cmd: ProjectCmd = ProjectCmd()
     cmd.add(project, config)
+
+    if change is True:
+        cmd.setprj(project)
 
 @app.command(name="rm")
 def remove(
@@ -152,6 +170,9 @@ class ProjectCmd():
         """
         found: ProjectInstance | None = self.prj.search(project)
         if found is None:
+            return False
+
+        if found is self.prj.make:
             return False
 
         # Should handle this better
