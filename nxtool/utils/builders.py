@@ -93,7 +93,7 @@ class CMakeBuilder(Builder):
             f"-DCMAKE_BUILD_TYPE={btype}"
         ])
 
-    def build(self, target: str = "all", jobs: int = 4):
+    def build(self, target: str = "all"):
 
         run_cmake_cmd([
             "--build",
