@@ -5,11 +5,10 @@ from pathlib import Path
 
 import typer
 
-from nxtool.commands import *
+from nxtool.commands import * # pylint: disable=W0401
 
 from nxtool.configuration import PathsStore, ConfigStore
 from nxtool.utils.topdir import topdir
-from nxtool.workspace import ToolsStore
 
 
 class NxApp():
