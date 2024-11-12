@@ -2,9 +2,7 @@
 Project commands module.
 
 This module provides command-line commands for managing projects within a workspace,
-including adding, removing, and setting active projects. The commands are implemented
-using Typer for an intuitive CLI interface, and they interact with the `ProjectStore`
-and `BoardsStore` classes to handle project data and configurations.
+including adding, removing, and setting active projects.
 
 Classes:
     ProjectCmd:
@@ -15,14 +13,6 @@ Functions:
     cb(name: str): Callback for setting the active project when no command is specified.
     add(project: str, config: str): Adds a new project with a specified configuration.
     remove(project: str): Removes an existing project by name.
-
-Dependencies:
-    - Typer for command-line interface functionality.
-    - ProjectStore, ProjectInstance, and BoardsStore from `nxtool.workspace`.
-
-Usage Example:
-    Run `python script_name.py add <project_name> <config>` to add a project,
-    or `python script_name.py rm <project_name>` to remove a project.
 """
 
 from typing import Tuple
@@ -79,11 +69,6 @@ def add(
 ):
     """
     Add a new project with a specified configuration.
-
-    :param project: The name of the project to add.
-    :type project: str
-    :param config: The configuration identifier for the project.
-    :type config: str
     """
     cmd: ProjectCmd = ProjectCmd()
     cmd.add(project, config)
@@ -97,32 +82,37 @@ def remove(
 ):
     """
     Remove an existing project by name.
-
-    :param project: The name of the project to remove.
-    :type project: str
     """
     cmd: ProjectCmd = ProjectCmd()
     cmd.rm(project)
 
 @app.command(name="set")
 def setopt(
+
     opt: Annotated[
         Tuple[str, str],
         typer.Argument()
     ],
 ):
+    """
+    set optional project configuration parameters
+    """
     cmd: ProjectCmd = ProjectCmd()
     cmd.setopts(opt)
 
 class ProjectCmd():
-    '''
-    class docstrings
-    '''
+    """
+    Command handler for managing projects and board configurations.
+
+    The `ProjectCmd` class provides functionality to add, remove, and manage 
+    projects within a workspace.
+    """
     def __init__(self):
         """
         Initialize the ProjectCmd instance.
 
-        Sets up project and board stores for handling project data.
+        Sets up instances for handling the `BoardsStore` and `ProjectStore`,
+        establishing the foundation for managing projects and configurations.
         """
         self.brd: BoardsStore = BoardsStore()
         self.prj: ProjectStore = ProjectStore()
@@ -132,16 +122,11 @@ class ProjectCmd():
         Add a new project to the workspace.
 
         This method adds a new project to the current workspace if it doesn't
-        already exist. If `config` is provided, it verifies its validity
-        before adding. The store is updated after each addition.
+        already exist. The store is updated after each addition.
 
-        :param project: The name of the project to add.
-        :type project: str
-        :param config: The configuration identifier for the project. If `None`,
-                       the project is added without configuration.
-        :type config: str | None
-        :return: `True` if the project was successfully added, `False` if the
-                 project already exists or if the specified configuration is invalid.
+        :param str project: The name of the project to add.
+        :param str | None config: The configuration identifier for the project.
+        :return: `True` if the project was successfully added, `False` otherwise
         :rtype: bool
         """
         if self.prj.search(project) is not None:
@@ -159,13 +144,10 @@ class ProjectCmd():
         """
         Remove an existing project from the workspace.
 
-        Checks if the project is the current active project before removal.
-        If it is, the removal is aborted. Updates the store if successful.
+        If sucessfully removed, updates the store accordingly.
 
-        :param project: The name of the project to remove.
-        :type project: str
-        :return: `True` if the project was successfully removed, `False` if
-                 the project is active or doesn't exist.
+        :param str project: The name of the project to remove.
+        :return: `True` if the project was successfully removed, `False` otherwise
         :rtype: bool
         """
         found: ProjectInstance | None = self.prj.search(project)
@@ -189,9 +171,8 @@ class ProjectCmd():
 
         Searches for the project in the store and sets it as active if found.
 
-        :param project: The name of the project to set as active.
-        :type project: str
-        :return: `True` if the project was found and set as active, `False` otherwise.
+        :param str project: The name of the project to set as active.
+        :return: `True` if the project was changes sucessfully, `False` otherwise.
         :rtype: bool
         """
         project_instance: ProjectInstance | None = self.prj.search(project)
@@ -209,8 +190,7 @@ class ProjectCmd():
 
         Placeholder for unsetting specific options for the active project.
 
-        :param opt: Option key and value as a tuple.
-        :type opt: Tuple[str, str]
+        :param Tuple[str, str] opt: Option key and value as a tuple.
         :return: `False` as this is a placeholder method.
         :rtype: bool
         """
@@ -222,8 +202,7 @@ class ProjectCmd():
 
         Placeholder for unsetting specific options for the active project.
 
-        :param opt: Option key and value as a tuple.
-        :type opt: Tuple[str, str]
+        :param Tuple[str, str] opt: Option key and value as a tuple.
         :return: `False` as this is a placeholder method.
         :rtype: bool
         """
