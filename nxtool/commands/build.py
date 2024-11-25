@@ -1,11 +1,29 @@
+"""
+Build commands module.
+
+This module provides command-line commands for interacting with nuttx's build systems,
+providing functionality to configure, build, clean projects within a workspace.
+
+Classes:
+    BuildCmd:
+        Command handler for managing configuration, building, cleaning 
+        projects within a workspace.
+
+Functions:
+    cb(name: str): Callback, acts as base build command
+"""
 from pathlib import Path
-from typing import Optional, Annotated
+from typing import Optional, Annotated, Union
 import typer
 from nxtool.workspace import ProjectStore, BoardsStore, ProjectInstance
 from nxtool.configuration import PathsStore
 from nxtool.utils.builders import CMakeBuilder, MakeBuilder, Builder
 
 app = typer.Typer()
+
+def _config_cb(param: typer.CallbackParam, cfg: str | None):
+    print(f"Validating param: {param.name}")
+    return cfg or '.'
 
 @app.callback(invoke_without_command=True)
 def cb(
@@ -15,18 +33,37 @@ def cb(
         typer.Option(
             "--project",
             "-p",
-            help="build specific project")
+            help="Build specific project"
+        )
     ] = None,
     config: Annotated[
         Optional[str],
-        typer.Argument()
+        typer.Option(
+            "--configure",
+            "-c",
+            callback=lambda a: a or ".",
+            is_flag=False
+        )
     ] = None
 ):
+    """
+    sub-command to interact with nuttx build systems
+    """
+    print(f"{ctx.args}")
     if ctx.invoked_subcommand is None:
-        bld: BuildCmd = BuildCmd(project)
-        bld.build(config)
+        cmd: BuildCmd = BuildCmd(project)
+        if config is not None:
+            cmd.configure(config)
+        else:
+            cmd.build()
 
 class BuildCmd():
+    """
+    Command handler for interacting with nuttx's build systems.
+
+    The `BuildCmd` class provides functionality to configure, build, clean 
+    projects within a workspace.
+    """
     def __init__(self,
                  project: str | None = None,
     ):
@@ -48,12 +85,23 @@ class BuildCmd():
         self.prj.current = self.inst
         self.prj.dump()
 
-    def build(
+    def configure(
         self,
-        config: str | None = None
-    ) -> None:
+        config: str
+    ) -> bool:
 
-        if config is not None and self.brd.search(config) is not None:
+        if config == '.':
+            self.builder.configure(self.inst.config)
+            return True
+
+        if self.brd.search(config) is not None:
             self.inst.config = config
-        self.builder.configure(self.inst.config)
+            self.builder.configure(self.inst.config)
+            return True
+
+        return False
+
+    def build(self) -> None:
+        """
+        """
         self.builder.build()
