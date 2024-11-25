@@ -6,11 +6,12 @@ including adding, removing, and setting active projects.
 
 Classes:
     ProjectCmd:
-        A command handler for managing projects, allowing for adding,
-        removing, and setting active projects, as well as managing configurations.
+        Command handler for managing projects and board configurations, 
+        providing functionality to add, remove, and manage 
+        projects within a workspace.
 
 Functions:
-    cb(name: str): Callback for setting the active project when no command is specified.
+    cb(name: str): Callback, acts as base project command
     add(project: str, config: str): Adds a new project with a specified configuration.
     remove(project: str): Removes an existing project by name.
 """
@@ -41,6 +42,9 @@ def cb(
         )
     ] = False
 ):
+    """
+    base project command
+    """
     if ctx.invoked_subcommand is None:
         cmd: ProjectCmd = ProjectCmd()
         if show is True:
