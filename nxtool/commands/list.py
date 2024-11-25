@@ -35,11 +35,9 @@ class ListCmd():
         print(self.brd.boards_dict)
 
     def projects(self):
-        self.prj.load()
         print(self.prj.projects)
 
     def project(self):
-        self.prj.load()
         print(self.prj.current)
 
     def tools(self):
