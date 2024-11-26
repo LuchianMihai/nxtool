@@ -45,8 +45,16 @@ def cb(
     config: Annotated[
         Optional[str],
         typer.Option(
-            "--configure",
+            "--config",
             "-c",
+            help="Select configuration"
+        )
+    ] = None,
+    tool: Annotated[
+        Optional[str],
+        typer.Option(
+            "--tool",
+            "-t",
             help="Select configuration"
         )
     ] = None,
@@ -60,8 +68,13 @@ def cb(
     """
     sub-command to interact with nuttx build systems
     """
-    print(f"{ctx.args}")
     if ctx.invoked_subcommand is None:
+        if tool is not None and project is not None:
+            typer.echo(
+                "[ERROR] -t/--tool and -p/--project are mutualy exclusive",
+                err=True
+            )
+            raise typer.Exit(code=1)
         cmd: BuildCmd = BuildCmd(project, config)
         cmd.run(opt)
 
