@@ -12,8 +12,9 @@ Classes:
 Functions:
     cb(name: str): Callback, acts as base build command
 """
+from enum import Enum
 from pathlib import Path
-from typing import Optional, Annotated, Union
+from typing import Optional, Annotated
 import typer
 from nxtool.workspace import ProjectStore, BoardsStore, ProjectInstance
 from nxtool.configuration import PathsStore
@@ -21,9 +22,14 @@ from nxtool.utils.builders import CMakeBuilder, MakeBuilder, Builder
 
 app = typer.Typer()
 
-def _config_cb(param: typer.CallbackParam, cfg: str | None):
-    print(f"Validating param: {param.name}")
-    return cfg or '.'
+class BuildOpt(str, Enum):
+    """
+    Build command choices
+    """
+    BUILD = "build"
+    CONFIG = "config"
+    CLEAN = "clean"
+    FULLCLEAN = "fullclean"
 
 @app.callback(invoke_without_command=True)
 def cb(
@@ -33,7 +39,7 @@ def cb(
         typer.Option(
             "--project",
             "-p",
-            help="Build specific project"
+            help="Select project"
         )
     ] = None,
     config: Annotated[
@@ -41,21 +47,23 @@ def cb(
         typer.Option(
             "--configure",
             "-c",
-            callback=lambda a: a or ".",
-            is_flag=False
+            help="Select configuration"
         )
-    ] = None
+    ] = None,
+    opt: Annotated[
+        BuildOpt,
+        typer.Argument(
+            help="Select configuration"
+        )
+    ] = BuildOpt.BUILD
 ):
     """
     sub-command to interact with nuttx build systems
     """
     print(f"{ctx.args}")
     if ctx.invoked_subcommand is None:
-        cmd: BuildCmd = BuildCmd(project)
-        if config is not None:
-            cmd.configure(config)
-        else:
-            cmd.build()
+        cmd: BuildCmd = BuildCmd(project, config)
+        cmd.run(opt)
 
 class BuildCmd():
     """
@@ -66,12 +74,16 @@ class BuildCmd():
     """
     def __init__(self,
                  project: str | None = None,
+                 config: str | None = None,
     ):
         self.prj: ProjectStore = ProjectStore()
         self.brd: BoardsStore = BoardsStore()
 
         # if project option is None, force search function to also return None
         self.inst: ProjectInstance = self.prj.search(project or "") or self.prj.current
+
+        if config is not None and self.brd.search(config) is not None:
+            self.inst.config = config
 
         dest_path = PathsStore.nxtool_root / Path(f"build_{self.inst.name}")
         src_path = PathsStore.nxtool_root / Path("nuttx")
@@ -85,23 +97,14 @@ class BuildCmd():
         self.prj.current = self.inst
         self.prj.dump()
 
-    def configure(
-        self,
-        config: str
-    ) -> bool:
-
-        if config == '.':
-            self.builder.configure(self.inst.config)
-            return True
-
-        if self.brd.search(config) is not None:
-            self.inst.config = config
-            self.builder.configure(self.inst.config)
-            return True
-
-        return False
-
-    def build(self) -> None:
+    def run(self, opt: BuildOpt) -> None:
         """
         """
-        self.builder.build()
+        print(f"executing {opt.value}")
+        match opt:
+            case BuildOpt.CONFIG:
+                self.builder.configure(self.inst.config)
+            case BuildOpt.BUILD:
+                self.builder.build()
+            case BuildOpt.CLEAN:
+                self.builder.clean()
