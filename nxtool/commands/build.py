@@ -27,9 +27,10 @@ class BuildOpt(str, Enum):
     Build command choices
     """
     BUILD = "build"
+    CLEANBUILD = "clean-build"
     CONFIG = "config"
     CLEAN = "clean"
-    FULLCLEAN = "fullclean"
+    FULLCLEAN = "full-clean"
 
 @app.callback(invoke_without_command=True)
 def cb(
@@ -117,7 +118,12 @@ class BuildCmd():
         match opt:
             case BuildOpt.CONFIG:
                 self.builder.configure(self.inst.config)
+            case BuildOpt.CLEANBUILD:
+                self.builder.clean()
+                self.builder.build()
             case BuildOpt.BUILD:
                 self.builder.build()
             case BuildOpt.CLEAN:
                 self.builder.clean()
+            case BuildOpt.FULLCLEAN:
+                self.builder.fullclean()

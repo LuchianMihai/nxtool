@@ -136,7 +136,10 @@ class CMakeBuilder(Builder):
         )
 
     def _run_cmake_cmd(self, args: list[str]) -> None:
-        cmd = ['cmake'] + args
+        cmd = [
+            "cmake",
+            ] + args
+        print(cmd)
         with subprocess.Popen(
             cmd, stdout=subprocess.PIPE, text=True
         ) as proc:
@@ -151,23 +154,28 @@ class CMakeBuilder(Builder):
         """
 
         self._run_cmake_cmd([
-            f"-S {self.source}",
-            f"-B {self.destination}",
-            f"-G {generator}",
-
-            f"-DBOARD_CONFIG={config}",
-            f"-DCMAKE_BUILD_TYPE={btype}"
+            "-S", f"{self.source}",
+            "-B", f"{self.destination}",
+            "-G", f"{generator}",
+            "-D", f"BOARD_CONFIG={config}",
+            "-D", f"CMAKE_BUILD_TYPE={btype}"
         ])
 
     def build(self, target: str = "all"):
-
+        """
+        build project
+        """
         self._run_cmake_cmd([
-            "--build",
-            f"{self.destination}"
+            "--build", f"{self.destination}",
+            "--target", f"{target}",
         ])
 
     def install(self, directory: str | None = None):
         pass
 
     def clean(self):
-        "clean configuration"
+        "clean project"
+        self._run_cmake_cmd([
+            "--build", f"{self.destination}",
+            "--target", "clean"
+        ])
