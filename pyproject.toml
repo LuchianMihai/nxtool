@@ -1,4 +1,4 @@
-[tool.poetry]
+ [tool.poetry]
 name = "nxtool"
 version = "0.0.0"
 description = ""
@@ -7,6 +7,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+typer = "^0.13.0"
+toml = "^0.10.2"
 
 [tool.poetry.scripts]
 nxtool = "nxtool.__main__:nxapp.start()"
