@@ -36,7 +36,7 @@ def cb(
     ] = None
 ):
     """
-    base project command
+    sub-command to manage projects
     """
     if ctx.invoked_subcommand is None:
         cmd: ProjectCmd = ProjectCmd()
@@ -59,7 +59,8 @@ def add(
         bool,
         typer.Option(
             "--change",
-            "-c"
+            "-c",
+            help="Change current project"
         )
     ] = False,
 ):
@@ -91,7 +92,7 @@ def setopt(
     ],
 ):
     """
-    set optional project configuration parameters
+    Set optional project configuration parameters
     """
     cmd: ProjectCmd = ProjectCmd()
     cmd.setopts(opt)

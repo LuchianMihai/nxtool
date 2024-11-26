@@ -42,9 +42,9 @@ class NxApp():
         self._configure_cli()
 
     def _configure_cli(self):
-        self.nxcli.add_typer(init_cmd, name="init")
-        self.nxcli.add_typer(project_cmd, name="prj")
-        self.nxcli.add_typer(list_cmd, name="ls")
+        self.nxcli.add_typer(workspace_cmd, name="workspace")
+        self.nxcli.add_typer(project_cmd, name="project")
+        self.nxcli.add_typer(info_cmd, name="info")
         self.nxcli.add_typer(build_cmd, name="build")
 
     def start(self):

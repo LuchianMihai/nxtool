@@ -8,12 +8,18 @@ from nxtool.workspace import BoardsStore, ProjectStore, ToolsStore
 
 app = typer.Typer()
 
+@app.callback()
+def cb():
+    """
+    sub-command to show workspace and projects info
+    """
+
 @app.command(name="boards")
 def list_boards():
     """
     list all boards and configurations
     """
-    prj: ListCmd = ListCmd()
+    prj: InfoCmd = InfoCmd()
     prj.boards()
 
 @app.command(name="projects")
@@ -21,7 +27,7 @@ def list_projectst():
     """
     list all workspace projects
     """
-    prj: ListCmd = ListCmd()
+    prj: InfoCmd = InfoCmd()
     prj.projects()
 
 @app.command(name="project")
@@ -29,7 +35,7 @@ def list_current_project():
     """
     list current project
     """
-    prj: ListCmd = ListCmd()
+    prj: InfoCmd = InfoCmd()
     prj.project()
 
 @app.command(name="tools")
@@ -37,10 +43,10 @@ def list_tools():
     """
     list nuttx tools
     """
-    prj: ListCmd = ListCmd()
+    prj: InfoCmd = InfoCmd()
     prj.tools()
 
-class ListCmd():
+class InfoCmd():
     def __init__(self):
         self.prj: ProjectStore = ProjectStore()
         self.brd: BoardsStore = BoardsStore()

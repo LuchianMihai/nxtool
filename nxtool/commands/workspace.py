@@ -22,10 +22,13 @@ def cb(
             help="clone default repositories")
     ] = False
 ):
-    init: InitCmd = InitCmd(clone)
+    """
+    sub-command to manage workspace
+    """
+    init: WorkspaceCmd = WorkspaceCmd(clone)
     init.run()
 
-class InitCmd():
+class WorkspaceCmd():
     def __init__(
         self,
         clone: bool = False
