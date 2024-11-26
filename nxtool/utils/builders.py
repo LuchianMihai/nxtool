@@ -88,14 +88,16 @@ class MakeBuilder(Builder):
         )
 
     def _run_make_cmd(self, args: list[str]) -> None:
-        cmd = [f"make -C {PathsStore.nxtool_root}/nuttx"] + args
-        self._run_bash_cmd(cmd)
+        cmd = [
+            "make",
+            "-C",
+            f"{PathsStore.nxtool_root}/nuttx"
+        ] + args
+        self._run_cmd(cmd)
 
-    def _run_bash_cmd(self, args: list[str]) -> None:
-        cmd = ['bash', '-c'] + args
-        print(cmd)
+    def _run_cmd(self, args: list[str]) -> None:
         with subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
         ) as proc:
             if proc.stdout:
                 for line in iter(proc.stdout.readline, ''):
@@ -106,8 +108,9 @@ class MakeBuilder(Builder):
         """
         equivalent to ./tools/configure.sh
         """
-        self._run_bash_cmd([
-            f"{PathsStore.nxtool_root}/nuttx/tools/configure.sh {config}"
+        self._run_cmd([
+            f"{PathsStore.nxtool_root}/nuttx/tools/configure.sh",
+            f"{config}"
         ])
 
     def build(self, target: str = "all"):
@@ -119,6 +122,7 @@ class MakeBuilder(Builder):
 
     def clean(self):
         "clean configuration"
+        self._run_make_cmd(["distclean"])
 
 class CMakeBuilder(Builder):
     def __init__(
