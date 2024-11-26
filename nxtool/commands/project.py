@@ -33,25 +33,17 @@ def cb(
             "--change",
             "-c"
         )
-    ] = None,
-    show: Annotated[
-        bool,
-        typer.Option(
-            "--show",
-            "-s"
-        )
-    ] = False
+    ] = None
 ):
     """
     base project command
     """
     if ctx.invoked_subcommand is None:
         cmd: ProjectCmd = ProjectCmd()
-        if show is True:
-            print(cmd.prj.current)
+        if change is not None:
+            cmd.setprj(change)
         else:
-            if change is not None:
-                cmd.setprj(change)
+            print(cmd.prj.current)
 
 @app.command(name="add")
 def add(
