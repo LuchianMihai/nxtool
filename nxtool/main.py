@@ -7,14 +7,13 @@ import typer
 
 from nxtool.commands import * # pylint: disable=W0401
 
-from nxtool.configuration import PathsStore, ConfigStore
+from nxtool.configuration import PathsStore
 from nxtool.utils.topdir import topdir
 
 
 class NxApp():
     def __init__(self) -> None:
         self.nxcli: typer.Typer = typer.Typer()
-        self.config: ConfigStore = ConfigStore()
 
         # Init PathsStore data attributes to correct values
         try:
