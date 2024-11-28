@@ -16,8 +16,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional, Annotated
 import typer
-from nxtool.workspace import ProjectStore, BoardsStore, ProjectInstance
-from nxtool.configuration import PathsStore
+from nxtool.configuration import PathsStore, ProjectStore, BoardsStore, ProjectInstance
 from nxtool.utils.builders import CMakeBuilder, MakeBuilder, Builder
 
 app = typer.Typer()

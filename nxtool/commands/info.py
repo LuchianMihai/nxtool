@@ -4,7 +4,7 @@ Think of apt vs apt-get
 """
 import typer
 
-from nxtool.workspace import BoardsStore, ProjectStore, ToolsStore
+from nxtool.configuration import BoardsStore, ProjectStore, ToolsStore
 
 app = typer.Typer()
 

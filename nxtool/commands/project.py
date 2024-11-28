@@ -20,7 +20,7 @@ from typing import Tuple
 from typing_extensions import Annotated, Optional
 
 import typer
-from nxtool.workspace import ProjectStore, ProjectInstance, BoardsStore
+from nxtool.configuration import ProjectStore, ProjectInstance, BoardsStore
 
 app = typer.Typer()
 
