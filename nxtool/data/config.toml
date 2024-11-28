@@ -1,0 +1,3 @@
+[remotes]
+nuttx = "https://github.com/apache/nuttx"
+apps = "https://github.com/apache/nuttx-apps"

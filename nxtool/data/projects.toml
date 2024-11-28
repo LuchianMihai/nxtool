@@ -1,0 +1,5 @@
+[current]
+name = "make"
+
+[make]
+config = "sim:nsh"
