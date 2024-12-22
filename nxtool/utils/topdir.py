@@ -3,11 +3,10 @@ from pathlib import Path
 def topdir(target_dir: Path) -> Path:
     """Search for topdir of the current workspace
 
-    Args:
-        target_dir (Path): name of the directory that defines the root of thw workspace
+    :param: target_dir (Path): name of the directory that defines the workspace root
 
-    Returns:
-        Path | None: path to workspace root
+    :return: path to workspace root
+    :rtype: Path
     """
     current_dir: Path = Path.cwd()
     ret: Path | None = next(
