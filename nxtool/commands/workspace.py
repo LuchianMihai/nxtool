@@ -3,34 +3,8 @@ from pathlib import Path
 import shutil
 import os
 
-from typing_extensions import Annotated
-
-import typer
-
-from nxtool.utils.git import GitWrapper
 from nxtool.configuration import ConfigStore, PathsStore
-
-app = typer.Typer()
-
-@app.callback(invoke_without_command=True)
-def cb(
-    ctx: typer.Context,
-):
-    """
-    sub-command to manage workspace
-    """
-    if ctx.invoked_subcommand is None:
-        cmd: WorkspaceCmd = WorkspaceCmd()
-
-@app.command(name="init")
-def init():
-    cmd: WorkspaceCmd = WorkspaceCmd()
-    cmd.init()
-
-@app.command(name="update")
-def update():
-    cmd: WorkspaceCmd = WorkspaceCmd()
-    cmd.update()
+from nxtool.utils.git import GitWrapper
 
 class WorkspaceCmd():
     def __init__(self):

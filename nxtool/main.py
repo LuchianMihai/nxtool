@@ -9,6 +9,7 @@ from nxtool.commands import * # pylint: disable=W0401
 
 from nxtool.configuration import PathsStore
 from nxtool.utils.topdir import topdir
+from nxtool.typer_commands import configure_cli
 
 
 class NxApp():
@@ -39,11 +40,10 @@ class NxApp():
         )
 
         self._configure_cli()
+        configure_cli(self.nxcli)
+
 
     def _configure_cli(self):
-        self.nxcli.add_typer(workspace_cmd, name="workspace")
-        self.nxcli.add_typer(project_cmd, name="project")
-        self.nxcli.add_typer(info_cmd, name="info")
         self.nxcli.add_typer(build_cmd, name="build")
 
     def start(self):

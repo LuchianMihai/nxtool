@@ -16,95 +16,7 @@ Functions:
     remove(project: str): Removes an existing project by name.
 """
 
-from typing import Tuple
-from typing_extensions import Annotated, Optional
-
-import typer
-from nxtool.configuration import ProjectStore, ProjectInstance, BoardsStore
-
-app = typer.Typer()
-
-@app.callback(invoke_without_command=True)
-def cb(
-    ctx: typer.Context,
-    change: Annotated[
-        Optional[str],
-        typer.Option(
-            "--change",
-            "-c"
-        )
-    ] = None
-):
-    """
-    sub-command to manage projects
-    """
-    if ctx.invoked_subcommand is None:
-        cmd: ProjectCmd = ProjectCmd()
-        print(cmd.prj.current)
-
-@app.command(name="change")
-def change(
-    project: Annotated[
-        str,
-        typer.Argument()
-    ],
-):
-    cmd: ProjectCmd = ProjectCmd()
-    cmd.setprj(project)
-
-@app.command(name="add")
-def add(
-    project: Annotated[
-        str,
-        typer.Argument()
-    ],
-    config: Annotated[
-        str,
-        typer.Argument()
-    ],
-    change: Annotated[
-        bool,
-        typer.Option(
-            "--change",
-            "-c",
-            help="Change current project"
-        )
-    ] = False,
-):
-    """
-    Add a new project with a specified configuration.
-    """
-    cmd: ProjectCmd = ProjectCmd()
-    cmd.add(project, config)
-
-    if change is True:
-        cmd.setprj(project)
-
-@app.command(name="rm")
-def remove(
-    project: Annotated[
-        str,
-        typer.Argument()
-    ],
-):
-    """
-    Remove an existing project by name.
-    """
-    cmd: ProjectCmd = ProjectCmd()
-    cmd.rm(project)
-
-@app.command(name="set")
-def setopt(
-    opt: Annotated[
-        Tuple[str, str],
-        typer.Argument()
-    ],
-):
-    """
-    Set optional project configuration parameters
-    """
-    cmd: ProjectCmd = ProjectCmd()
-    cmd.setopts(opt)
+from nxtool.configuration import BoardsStore, ProjectStore
 
 class ProjectCmd():
     """
@@ -194,7 +106,7 @@ class ProjectCmd():
 
         return False
 
-    def setopts(self, opt: Tuple[str, str]) -> bool:
+    def setopts(self, opt: tuple[str, str]) -> bool:
         """
         Unset project options.
 
@@ -206,7 +118,7 @@ class ProjectCmd():
         """
         return False
 
-    def unsetopts(self, opt: Tuple[str, str]) -> bool:
+    def unsetopts(self, opt: tuple[str, str]) -> bool:
         """
         Unset project options.
 
