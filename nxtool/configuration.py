@@ -116,7 +116,7 @@ class ProjectStore():
     def _pack_data(self) -> dict[str, Any]:
         pack = {}
         pack["current"] = {}
-        pack["current"]["name"] = self.current.name
+        pack["current"]["name"] = self.current.name if self.current is not None else ""
 
         pack["projects"] = [
             {"name": p.name, "config": p.config}

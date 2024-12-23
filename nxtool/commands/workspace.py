@@ -14,24 +14,23 @@ app = typer.Typer()
 
 @app.callback(invoke_without_command=True)
 def cb(
-    update: Annotated[
-        bool,
-        typer.Option(
-            "--update",
-            "-u",
-            help="clone default repositories")
-    ] = False
+    ctx: typer.Context,
 ):
     """
     sub-command to manage workspace
     """
+    if ctx.invoked_subcommand is None:
+        cmd: WorkspaceCmd = WorkspaceCmd()
+
+@app.command(name="init")
+def init():
     cmd: WorkspaceCmd = WorkspaceCmd()
-
-    if update is True:
-        cmd.update()
-        return
-
     cmd.init()
+
+@app.command(name="update")
+def update():
+    cmd: WorkspaceCmd = WorkspaceCmd()
+    cmd.update()
 
 class WorkspaceCmd():
     def __init__(self):

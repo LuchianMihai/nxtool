@@ -40,10 +40,17 @@ def cb(
     """
     if ctx.invoked_subcommand is None:
         cmd: ProjectCmd = ProjectCmd()
-        if change is not None:
-            cmd.setprj(change)
-        else:
-            print(cmd.prj.current)
+        print(cmd.prj.current)
+
+@app.command(name="change")
+def change(
+    project: Annotated[
+        str,
+        typer.Argument()
+    ],
+):
+    cmd: ProjectCmd = ProjectCmd()
+    cmd.setprj(project)
 
 @app.command(name="add")
 def add(
@@ -75,7 +82,10 @@ def add(
 
 @app.command(name="rm")
 def remove(
-    project: Annotated[str, typer.Argument()],
+    project: Annotated[
+        str,
+        typer.Argument()
+    ],
 ):
     """
     Remove an existing project by name.
@@ -85,7 +95,6 @@ def remove(
 
 @app.command(name="set")
 def setopt(
-
     opt: Annotated[
         Tuple[str, str],
         typer.Argument()
