@@ -18,5 +18,9 @@ class GitWrapper():
                     sys.stdout.write(line)
                 proc.communicate()
 
-    def clone(self):
-        self._run_git_cmd(['clone', self.repo])
+    def clone(self, name: str | None):
+        self._run_git_cmd([
+            'clone',
+            self.repo,
+            name or ""
+        ])

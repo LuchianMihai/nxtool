@@ -69,10 +69,6 @@ class WorkspaceCmd():
     def update(self):
         cfg: ConfigStore = ConfigStore()
 
-        # git clone https://github.com/apache/nuttx nuttx
-        nuttx_repo:GitWrapper = GitWrapper(f'{cfg.nuttx}')
-        nuttx_repo.clone()
-
-        # git clone https://github.com/apache/nuttx-apps apps
-        apps_repo:GitWrapper = GitWrapper(f'{cfg.apps}')
-        apps_repo.clone()
+        for remote in cfg.remotes:
+            repo:GitWrapper = GitWrapper(remote[1])
+            repo.clone(remote[0])

@@ -21,33 +21,23 @@ from nxtool.utils.builders import CMakeBuilder, MakeBuilder, Builder
 
 app = typer.Typer()
 
-class BuildOpt(str, Enum):
-    """
-    Build command choices
-    """
-    BUILD = "build"
-    CLEANBUILD = "clean-build"
-    CONFIG = "config"
-    CLEAN = "clean"
-    FULLCLEAN = "full-clean"
-
 @app.callback(invoke_without_command=True)
 def cb(
     ctx: typer.Context,
-    project: Annotated[
-        Optional[str],
+    reconfig: Annotated[
+        bool,
         typer.Option(
-            "--project",
-            "-p",
-            help="Select project"
+            "--reconfig",
+            "-r",
+            help="rerun configuration"
         )
-    ] = None,
+    ] = False,
     config: Annotated[
         Optional[str],
         typer.Option(
             "--config",
             "-c",
-            help="Select configuration"
+            help="change project configuration"
         )
     ] = None,
     tool: Annotated[
@@ -55,74 +45,66 @@ def cb(
         typer.Option(
             "--tool",
             "-t",
-            help="Select configuration"
+            help="select tool for building"
         )
     ] = None,
-    opt: Annotated[
-        BuildOpt,
-        typer.Argument(
-            help="Select configuration"
-        )
-    ] = BuildOpt.BUILD
 ):
     """
     sub-command to interact with nuttx build systems
     """
     if ctx.invoked_subcommand is None:
-        if tool is not None and project is not None:
-            typer.echo(
-                "[ERROR] -t/--tool and -p/--project are mutualy exclusive",
-                err=True
-            )
-            raise typer.Exit(code=1)
-        cmd: BuildCmd = BuildCmd(project, config)
-        cmd.run(opt)
+        cfg = config
+        cmd: BuildCmd = BuildCmd()
+        if config is not None:
+            cmd.config(config)
+            return
+        if reconfig is True:
+            cmd.config()
+            return
+        cmd.build()
 
 class BuildCmd():
     """
-    Command handler for interacting with nuttx's build systems.
+    Command handler for interacting with nuttx's cmake build system.
 
     The `BuildCmd` class provides functionality to configure, build, clean 
-    projects within a workspace.
+    cmake projects in a workspace.
     """
-    def __init__(self,
-                 project: str | None = None,
-                 config: str | None = None,
-    ):
+    def __init__(self):
         self.prj: ProjectStore = ProjectStore()
         self.brd: BoardsStore = BoardsStore()
-
-        # if project option is None, force search function to also return None
-        self.inst: ProjectInstance = self.prj.search(project or "") or self.prj.current
-
-        if config is not None and self.brd.search(config) is not None:
-            self.inst.config = config
+        self.inst: ProjectInstance = self.prj.current
 
         dest_path = PathsStore.nxtool_root / Path(f"build_{self.inst.name}")
         src_path = PathsStore.nxtool_root / Path("nuttx")
 
-        if self.inst != self.prj.make:
-            self.builder: Builder = CMakeBuilder(src_path, dest_path)
-        else:
-            self.builder: Builder = MakeBuilder(src_path, dest_path)
+        self.builder: Builder = CMakeBuilder(src_path, dest_path)
 
     def __del__(self):
         self.prj.current = self.inst
         self.prj.dump()
+    
+    def config(self, opt: str | None) -> None:
+        """
+        run project configuration
+        """
+        if config is None and self.brd.search(config) is not None:
+            self.inst.config = config
+        self.builder.configure(self.inst.config)
 
-    def run(self, opt: BuildOpt) -> None:
+    def build(self) -> None:
         """
+        run project build
         """
-        print(f"executing {opt.value}")
-        match opt:
-            case BuildOpt.CONFIG:
-                self.builder.configure(self.inst.config)
-            case BuildOpt.CLEANBUILD:
-                self.builder.clean()
-                self.builder.build()
-            case BuildOpt.BUILD:
-                self.builder.build()
-            case BuildOpt.CLEAN:
-                self.builder.clean()
-            case BuildOpt.FULLCLEAN:
-                self.builder.fullclean()
+        self.builder.build()
+
+    def clean(self, full: bool = False) -> None:
+        """
+        run project full clean
+        """
+        if full is True:
+            self.builder.fullclean()
+            return
+
+        self.builder.clean()
+

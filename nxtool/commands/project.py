@@ -114,6 +114,10 @@ class ProjectCmd():
         self.brd: BoardsStore = BoardsStore()
         self.prj: ProjectStore = ProjectStore()
 
+    def __del__(self):
+        self.prj.dump()
+
+
     def add(self, project: str, config: str) -> bool:
         """
         Add a new project to the workspace.
@@ -131,8 +135,10 @@ class ProjectCmd():
 
         cfg: tuple[str, str] | None = self.brd.search(config)
         if cfg is not None:
-            self.prj.projects.add(ProjectInstance(name=project, config=config))
-            self.prj.dump()
+            inst: ProjectInstance = ProjectInstance(name=project, config=config)
+            self.prj.projects.add(inst)
+            if self.prj.current is None:
+                self.prj.current = inst
             return True
 
         return False
@@ -159,7 +165,6 @@ class ProjectCmd():
             return False
 
         self.prj.projects.remove(found)
-        self.prj.dump()
         return True
 
     def setprj(self, project: str) -> bool:
@@ -176,7 +181,6 @@ class ProjectCmd():
 
         if project_instance is not None:
             self.prj.current = project_instance
-            self.prj.dump()
             return True
 
         return False

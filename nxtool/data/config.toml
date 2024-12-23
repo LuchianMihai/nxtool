@@ -1,3 +1,7 @@
-[remotes]
-nuttx = "https://github.com/apache/nuttx"
-apps = "https://github.com/apache/nuttx-apps"
+[[remotes]]
+repo = "https://github.com/apache/nuttx"
+name = "nuttx"
+
+[[remotes]]
+repo = "https://github.com/apache/nuttx-apps"
+name = "apps"
