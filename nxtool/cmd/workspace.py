@@ -3,8 +3,8 @@ from pathlib import Path
 import shutil
 import os
 
-from nxtool.configuration import ConfigStore, PathsStore
-from nxtool.utils.git import GitWrapper
+from nxtool.config.configuration import ConfigStore, PathsStore
+from nxtool.internal.utils.git import GitWrapper
 
 class WorkspaceCmd():
     def __init__(self):

@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from shutil import rmtree
 
-from nxtool.configuration import PathsStore
+from nxtool.config.configuration import PathsStore
 
 class Builder(ABC):
     """

@@ -16,7 +16,7 @@ Functions:
     remove(project: str): Removes an existing project by name.
 """
 
-from nxtool.configuration import BoardsStore, ProjectStore, ProjectInstance
+from nxtool.config.configuration import BoardsStore, ProjectStore, ProjectInstance
 
 class ProjectCmd():
     """
