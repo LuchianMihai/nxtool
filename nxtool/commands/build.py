@@ -8,60 +8,10 @@ Classes:
     BuildCmd:
         Command handler for managing configuration, building, cleaning 
         projects within a workspace.
-
-Functions:
-    cb(name: str): Callback, acts as base build command
 """
-from enum import Enum
 from pathlib import Path
-from typing import Optional, Annotated
-import typer
 from nxtool.configuration import PathsStore, ProjectStore, BoardsStore, ProjectInstance
-from nxtool.utils.builders import CMakeBuilder, MakeBuilder, Builder
-
-app = typer.Typer()
-
-@app.callback(invoke_without_command=True)
-def cb(
-    ctx: typer.Context,
-    reconfig: Annotated[
-        bool,
-        typer.Option(
-            "--reconfig",
-            "-r",
-            help="rerun configuration"
-        )
-    ] = False,
-    config: Annotated[
-        Optional[str],
-        typer.Option(
-            "--config",
-            "-c",
-            help="change project configuration"
-        )
-    ] = None,
-    tool: Annotated[
-        Optional[str],
-        typer.Option(
-            "--tool",
-            "-t",
-            help="select tool for building"
-        )
-    ] = None,
-):
-    """
-    sub-command to interact with nuttx build systems
-    """
-    if ctx.invoked_subcommand is None:
-        cfg = config
-        cmd: BuildCmd = BuildCmd()
-        if config is not None:
-            cmd.config(config)
-            return
-        if reconfig is True:
-            cmd.config()
-            return
-        cmd.build()
+from nxtool.utils.builders import CMakeBuilder, Builder
 
 class BuildCmd():
     """
@@ -84,11 +34,11 @@ class BuildCmd():
         self.prj.current = self.inst
         self.prj.dump()
     
-    def config(self, opt: str | None) -> None:
+    def config(self, config: str | None = None) -> None:
         """
         run project configuration
         """
-        if config is None and self.brd.search(config) is not None:
+        if config is not None and self.brd.search(config) is not None:
             self.inst.config = config
         self.builder.configure(self.inst.config)
 
@@ -102,9 +52,5 @@ class BuildCmd():
         """
         run project full clean
         """
-        if full is True:
-            self.builder.fullclean()
-            return
-
-        self.builder.clean()
+        self.builder.clean() if full is False else self.builder.fullclean()
 

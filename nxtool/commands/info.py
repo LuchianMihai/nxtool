@@ -3,6 +3,8 @@ List command is intended to be used in shell scripts rather than interactive
 Think of apt vs apt-get
 """
 
+from nxtool.configuration import ProjectStore, BoardsStore, ToolsStore
+
 class InfoCmd():
     def __init__(self):
         self.prj: ProjectStore = ProjectStore()

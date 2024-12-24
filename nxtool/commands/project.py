@@ -16,7 +16,7 @@ Functions:
     remove(project: str): Removes an existing project by name.
 """
 
-from nxtool.configuration import BoardsStore, ProjectStore
+from nxtool.configuration import BoardsStore, ProjectStore, ProjectInstance
 
 class ProjectCmd():
     """
@@ -64,7 +64,7 @@ class ProjectCmd():
 
         return False
 
-    def rm(self, project: str) -> bool:
+    def remove(self, project: str) -> bool:
         """
         Remove an existing project from the workspace.
 
@@ -88,7 +88,7 @@ class ProjectCmd():
         self.prj.projects.remove(found)
         return True
 
-    def setprj(self, project: str) -> bool:
+    def set_project(self, project: str) -> bool:
         """
         Set the specified project as the active project.
 
@@ -98,6 +98,7 @@ class ProjectCmd():
         :return: `True` if the project was changes sucessfully, `False` otherwise.
         :rtype: bool
         """
+
         project_instance: ProjectInstance | None = self.prj.search(project)
 
         if project_instance is not None:
@@ -108,7 +109,7 @@ class ProjectCmd():
 
     def setopts(self, opt: tuple[str, str]) -> bool:
         """
-        Unset project options.
+        Unset project options.variable = obj or default_value
 
         Placeholder for unsetting specific options for the active project.
 

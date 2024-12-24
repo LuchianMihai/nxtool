@@ -3,13 +3,62 @@ from typing_extensions import Annotated, Optional
 import typer
 
 from nxtool.configuration import *
-from nxtool.utils.git import GitWrapper
 from nxtool.commands.info import InfoCmd
 from nxtool.commands.project import ProjectCmd
 from nxtool.commands.workspace import WorkspaceCmd
+from nxtool.commands.build import BuildCmd
 
-info = typer.Typer()
-project = typer.Typer()
+
+build = typer.Typer()
+
+@build.callback(invoke_without_command=True)
+def cb(
+    ctx: typer.Context,
+    reconfig: Annotated[
+        bool,
+        typer.Option(
+            "--reconfig",
+            "-r",
+            help="rerun configuration"
+        )
+    ] = False,
+    config: Annotated[
+        Optional[str],
+        typer.Option(
+            "--config",
+            "-c",
+            help="change project configuration"
+        )
+    ] = None,
+    tool: Annotated[
+        Optional[str],
+        typer.Option(
+            "--tool",
+            "-t",
+            help="select tool for building"
+        )
+    ] = None,
+):
+    """
+    sub-command to interact with nuttx build systems
+    """
+    if ctx.invoked_subcommand is None:
+        build: BuildCmd = BuildCmd()
+        if reconfig is True:
+            cmd.config()
+            return
+        build.build()
+
+@build.command(name="change")
+def change(
+    config: Annotated[
+        str,
+        typer.Argument()
+    ],
+) -> None:
+    build: BuildCmd = BuildCmd()
+    build.config(config)
+
 workspace = typer.Typer()
 
 @workspace.callback(invoke_without_command=True)
@@ -23,14 +72,16 @@ def cb(
         cmd: WorkspaceCmd = WorkspaceCmd()
 
 @workspace.command(name="init")
-def init():
+def init() -> None:
     cmd: WorkspaceCmd = WorkspaceCmd()
     cmd.init()
 
 @workspace.command(name="update")
-def update():
+def update() -> None:
     cmd: WorkspaceCmd = WorkspaceCmd()
     cmd.update()
+
+info = typer.Typer()
 
 @info.callback()
 def cb():
@@ -70,6 +121,8 @@ def list_tools():
     prj: InfoCmd = InfoCmd()
     prj.tools()
 
+project = typer.Typer()
+
 @project.callback(invoke_without_command=True)
 def cb(
     ctx: typer.Context,
@@ -88,15 +141,15 @@ def cb(
         cmd: ProjectCmd = ProjectCmd()
         print(cmd.prj.current)
 
-@project.command(name="change")
-def change(
+@project.command(name="switch")
+def switch(
     project: Annotated[
         str,
         typer.Argument()
     ],
 ):
     cmd: ProjectCmd = ProjectCmd()
-    cmd.setprj(project)
+    cmd.set_project(project)
 
 @project.command(name="add")
 def add(
@@ -136,8 +189,8 @@ def remove(
     """
     Remove an existing project by name.
     """
-    cmd: ProjectCmd = ProjectCmd()
-    cmd.rm(project)
+    project: ProjectCmd = ProjectCmd()
+    project.remove(project)
 
 @project.command(name="set")
 def setopt(
@@ -156,4 +209,5 @@ def configure_cli(cli: typer.Typer) -> None:
     cli.add_typer(workspace, name="workspace")
     cli.add_typer(info, name="info")
     cli.add_typer(project, name="project")
+    cli.add_typer(build, name="build")
     
