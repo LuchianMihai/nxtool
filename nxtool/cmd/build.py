@@ -10,7 +10,7 @@ Classes:
         projects within a workspace.
 """
 from pathlib import Path
-from nxtool.configuration import PathsStore, ProjectStore, BoardsStore, ProjectInstance
+from nxtool.config.configuration import PathsStore, ProjectStore, BoardsStore, ProjectInstance
 from nxtool.utils.builders import CMakeBuilder, Builder
 
 class BuildCmd():

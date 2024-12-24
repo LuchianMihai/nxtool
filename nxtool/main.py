@@ -5,11 +5,12 @@ from pathlib import Path
 
 import typer
 
-from nxtool.configuration import PathsStore
+from nxtool.config.configuration import PathsStore
 from nxtool.utils.topdir import topdir
-from nxtool.cli.typer_commands import configure_cli
+from nxtool.typer.typer_commands import configure_typer
 
 class NxApp():
+
     def __init__(self) -> None:
         self.nxcli: typer.Typer = typer.Typer()
 
@@ -36,13 +37,7 @@ class NxApp():
             PathsStore.nxtool_root / PathsStore.nxtool_dir_name / "bin"
         )
 
-        configure_cli(self.nxcli)
-        self._configure_cli()
-
-    def _configure_cli(self) -> None:
-        @self.nxcli.command(name="topdir")
-        def show_topdir() -> None:
-            print(f"workspace topdir:{PathsStore.nxtool_root}")
+        configure_typer(self.nxcli)
 
     def start(self):
         self.nxcli()

@@ -2,12 +2,11 @@ from typing_extensions import Annotated, Optional
 
 import typer
 
-from nxtool.configuration import *
-from nxtool.commands.info import InfoCmd
-from nxtool.commands.project import ProjectCmd
-from nxtool.commands.workspace import WorkspaceCmd
-from nxtool.commands.build import BuildCmd
-
+from nxtool.config.configuration import *
+from nxtool.cmd.info import InfoCmd
+from nxtool.cmd.project import ProjectCmd
+from nxtool.cmd.workspace import WorkspaceCmd
+from nxtool.cmd.build import BuildCmd
 
 build = typer.Typer()
 
@@ -45,7 +44,7 @@ def cb(
     if ctx.invoked_subcommand is None:
         build: BuildCmd = BuildCmd()
         if reconfig is True:
-            cmd.config()
+            build.config()
             return
         build.build()
 
@@ -205,9 +204,13 @@ def setopt(
     cmd: ProjectCmd = ProjectCmd()
     cmd.setopts(opt)
 
-def configure_cli(cli: typer.Typer) -> None:
+def configure_typer(cli: typer.Typer) -> None:
     cli.add_typer(workspace, name="workspace")
     cli.add_typer(info, name="info")
     cli.add_typer(project, name="project")
     cli.add_typer(build, name="build")
+
+    @cli.command(name="topdir")
+    def show_topdir() -> None:
+        print(f"workspace topdir: {PathsStore.nxtool_root}")
     

@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 import os
 
-from nxtool.configuration import ConfigStore, PathsStore
+from nxtool.config.configuration import ConfigStore, PathsStore
 from nxtool.utils.git import GitWrapper
 
 class WorkspaceCmd():
@@ -31,10 +31,10 @@ class WorkspaceCmd():
         except FileExistsError:
             print("Workspace already initialized. Aborting")
 
-        data = importlib.resources.files("nxtool.data")
+        data: Path = importlib.resources.files("nxtool.data")
 
         cfg: Path = Path(str(data), "config.toml")
-        shutil.copy(str(cfg), PathsStore.nxtool_config)
+        shutil.copy(cfg, PathsStore.nxtool_config)
 
         prj: Path = Path(str(data), "projects.toml")
         shutil.copy(str(prj), PathsStore.nxtool_projects)
