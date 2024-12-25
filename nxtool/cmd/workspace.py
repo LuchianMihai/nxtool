@@ -28,16 +28,16 @@ class WorkspaceCmd():
             os.mkdir(PathsStore.nxtool_dir_name)
             print(f"{PathsStore.nxtool_dir_name} directory created")
 
+            data: Path = importlib.resources.files("nxtool.data")
+
+            cfg: Path = Path(str(data), "config.toml")
+            shutil.copy(cfg, PathsStore.nxtool_config)
+
+            prj: Path = Path(str(data), "projects.toml")
+            shutil.copy(str(prj), PathsStore.nxtool_projects)
+
         except FileExistsError:
             print("Workspace already initialized. Aborting")
-
-        data: Path = importlib.resources.files("nxtool.data")
-
-        cfg: Path = Path(str(data), "config.toml")
-        shutil.copy(cfg, PathsStore.nxtool_config)
-
-        prj: Path = Path(str(data), "projects.toml")
-        shutil.copy(str(prj), PathsStore.nxtool_projects)
 
     def update(self):
         cfg: ConfigStore = ConfigStore()
