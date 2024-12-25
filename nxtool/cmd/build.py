@@ -22,6 +22,10 @@ class BuildCmd():
     """
     def __init__(self):
         self.prj: ProjectStore = ProjectStore()
+
+        if self.prj.current is None:
+            raise RuntimeError("No projects present, current project is None")
+
         self.brd: BoardsStore = BoardsStore()
         self.inst: ProjectInstance = self.prj.current
 
@@ -31,8 +35,9 @@ class BuildCmd():
         self.builder: Builder = CMakeBuilder(src_path, dest_path)
 
     def __del__(self):
-        self.prj.current = self.inst
-        self.prj.dump()
+        if hasattr(self, "inst") is True:
+            self.prj.current = self.inst
+            self.prj.dump()
     
     def config(self, config: str | None = None) -> None:
         """

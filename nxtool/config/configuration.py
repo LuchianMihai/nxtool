@@ -37,7 +37,7 @@ class ConfigStore():
     Config class that stores data from .nxtool/config.
     """
 
-    remotes: list[(str, str)] = field(init=False)
+    remotes: list[tuple[str, str]] = field(init=False)
 
     def __post_init__(self):
         self.load()
@@ -56,12 +56,12 @@ class ConfigStore():
             with open(PathsStore.nxtool_config, 'r', encoding='utf-8') as file:
                 data: dict = toml.load(file)
                 if "remotes" in data:
-                    self.remotes = {
+                    self.remotes = [
                         (r["name"], r["repo"])
                         for r in data["remotes"]
-                    }
+                    ]
                 else:
-                    self.remotes = set()
+                    self.remotes = list()
         except FileNotFoundError:
             print(f"Error: File '{PathsStore.nxtool_config}' not found.")
             return

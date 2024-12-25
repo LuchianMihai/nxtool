@@ -1,3 +1,4 @@
+from importlib.abc import Traversable
 import importlib.resources
 from pathlib import Path
 import shutil
@@ -28,7 +29,7 @@ class WorkspaceCmd():
             os.mkdir(PathsStore.nxtool_dir_name)
             print(f"{PathsStore.nxtool_dir_name} directory created")
 
-            data: Path = importlib.resources.files("nxtool.data")
+            data: Traversable = importlib.resources.files("nxtool.data")
 
             cfg: Path = Path(str(data), "config.toml")
             shutil.copy(cfg, PathsStore.nxtool_config)
